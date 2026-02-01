@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Calistoga&family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-primary font-sans antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-wide;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 rounded-xl bg-primary text-white font-medium hover:bg-slate-800 transition-all duration-300 shadow-lg shadow-slate-900/10 active:scale-95;
+  }
+  
+  .btn-accent {
+    @apply px-6 py-3 rounded-xl bg-accent text-white font-medium hover:bg-accent-hover transition-all duration-300 shadow-lg shadow-indigo-500/20 active:scale-95;
+  }
+}
