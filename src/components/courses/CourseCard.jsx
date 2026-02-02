@@ -1,9 +1,10 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { GraduationCap, Clock, School, Award, ArrowRight } from 'lucide-react';
 
 const CourseCard = ({ programme }) => {
     return (
-        <div className="group relative bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-100 transition-all duration-300">
+        <Link to={`/programmes/${programme.id}`} className="block group relative bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-100 transition-all duration-300">
             <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
                 <ArrowRight className="text-accent -rotate-45 group-hover:rotate-0 transition-transform duration-300" />
             </div>
@@ -41,7 +42,7 @@ const CourseCard = ({ programme }) => {
                     </span>
                 )}
             </div>
-        </div>
+        </Link>
     );
 };
 
