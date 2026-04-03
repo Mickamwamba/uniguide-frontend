@@ -15,7 +15,7 @@ const Navbar = () => {
                 <div className="hidden md:flex items-center gap-8 text-slate-600 font-medium text-sm">
                     <Link to="/universities" className="hover:text-accent transition-colors">Universities</Link>
                     <Link to="/courses" className="hover:text-accent transition-colors">Courses</Link>
-                    <a href="#" className="hover:text-accent transition-colors">Career Guide</a>
+                    <Link to="/guidance" className="hover:text-accent transition-colors">Find My Course</Link>
                 </div>
 
                 <div className="flex items-center gap-4">
@@ -23,10 +23,10 @@ const Navbar = () => {
                         <Search size={16} />
                         <span>Search</span>
                     </button>
-                    <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-accent hover:bg-accent-hover text-white transition-all shadow-lg shadow-indigo-500/20 text-sm font-medium">
+                    <Link to="/advisor" className="flex items-center gap-2 px-4 py-2 rounded-full bg-accent hover:bg-accent-hover text-white transition-all shadow-lg shadow-indigo-500/20 text-sm font-medium">
                         <Sparkles size={16} />
-                        <span>AI Guide</span>
-                    </button>
+                        <span>UniGuide Advisor</span>
+                    </Link>
                 </div>
             </div>
         </nav>
