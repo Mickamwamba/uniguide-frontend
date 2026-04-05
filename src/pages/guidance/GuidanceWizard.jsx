@@ -8,19 +8,26 @@ const GuidanceWizard = () => {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const [matches, setMatches] = useState([]);
+    const [synthesis, setSynthesis] = useState('');
     const [formData, setFormData] = useState({
         completedYear: '',
         combination: '',
         grades: {},
         interests: '',
-        aspirations: []
+        aspirations: [],
+        personality: {
+            environment: '',
+            activity: '',
+            impact: '',
+            role: ''
+        }
     });
 
     const handleNext = () => setStep(prev => prev + 1);
     const handleBack = () => setStep(prev => prev - 1);
 
     const handleFindMatches = async () => {
-        setStep(3);
+        setStep(4);
         setLoading(true);
         setError(null);
         try {
@@ -32,7 +39,8 @@ const GuidanceWizard = () => {
                 body: JSON.stringify({
                     interests: formData.interests,
                     combination: formData.combination,
-                    grades: formData.grades
+                    grades: formData.grades,
+                    personality: formData.personality
                 }),
             });
 
@@ -42,11 +50,14 @@ const GuidanceWizard = () => {
                 throw new Error(data.error || 'Failed to fetch recommendations');
             }
 
-            if (Array.isArray(data)) {
+            if (data && Array.isArray(data.matches)) {
+                setMatches(data.matches);
+                setSynthesis(data.ai_synthesis || '');
+            } else if (Array.isArray(data)) {
                 setMatches(data);
             } else {
                 setMatches([]);
-                console.error("API returned non-array:", data);
+                console.error("API returned invalid format:", data);
             }
 
         } catch (error) {
@@ -64,15 +75,16 @@ const GuidanceWizard = () => {
             <div className="container mx-auto px-6 py-12 max-w-4xl">
                 {/* Progress Bar */}
                 <div className="mb-12 max-w-3xl mx-auto">
-                    <div className="flex justify-between text-sm font-medium text-slate-500 mb-2">
-                        <span className={step >= 1 ? 'text-accent' : ''}>Academic Profile</span>
+                    <div className="flex justify-between text-sm font-medium text-slate-500 mb-2 px-1">
+                        <span className={step >= 1 ? 'text-accent' : ''}>Academic</span>
                         <span className={step >= 2 ? 'text-accent' : ''}>Interests</span>
-                        <span className={step >= 3 ? 'text-accent' : ''}>Results</span>
+                        <span className={step >= 3 ? 'text-accent' : ''}>Personality</span>
+                        <span className={step >= 4 ? 'text-accent' : ''}>Results</span>
                     </div>
                     <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
                         <div
                             className="h-full bg-accent transition-all duration-500 ease-out"
-                            style={{ width: `${(step / 3) * 100}% ` }}
+                            style={{ width: `${(step / 4) * 100}%` }}
                         ></div>
                     </div>
                 </div>
@@ -152,16 +164,106 @@ const GuidanceWizard = () => {
                                     Back
                                 </button>
                                 <button
-                                    onClick={handleFindMatches}
+                                    onClick={handleNext}
                                     className="flex-1 py-4 bg-accent text-white font-bold rounded-xl hover:bg-accent/90 transition-colors flex items-center justify-center gap-2"
                                 >
-                                    Find Matches <ChevronRight size={20} />
+                                    Continue <ChevronRight size={20} />
                                 </button>
                             </div>
                         </div>
                     )}
 
                     {step === 3 && (
+                        <div className="space-y-6 max-w-2xl mx-auto">
+                            <div className="text-center mb-8">
+                                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-blue-600">
+                                    <BookOpen size={32} />
+                                </div>
+                                <h1 className="text-2xl font-bold">Your Working Style</h1>
+                                <p className="text-slate-500">To recommend the best degrees, tell us your natural style in 4 quick questions.</p>
+                            </div>
+
+                            <div className="space-y-5">
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">1. When you imagine your dream job, where are you mostly spending your day?</label>
+                                    <select 
+                                        className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 outline-none"
+                                        value={formData.personality.environment}
+                                        onChange={(e) => setFormData({...formData, personality: {...formData.personality, environment: e.target.value}})}
+                                    >
+                                        <option value="">Choose your preferred environment</option>
+                                        <option value="A">In a smart office with a computer and documents.</option>
+                                        <option value="B">Outside in the field (construction, farm, nature).</option>
+                                        <option value="C">In a hospital or clinic helping patients directly.</option>
+                                        <option value="D">Moving around, meeting groups, or running a business.</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">2. At school, which of these activities do you actually enjoy most?</label>
+                                    <select 
+                                        className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 outline-none"
+                                        value={formData.personality.activity}
+                                        onChange={(e) => setFormData({...formData, personality: {...formData.personality, activity: e.target.value}})}
+                                    >
+                                        <option value="">Choose an activity</option>
+                                        <option value="A">Calculating numbers, logic, getting exact answers.</option>
+                                        <option value="B">Debating ideas, writing essays, or presenting.</option>
+                                        <option value="C">Doing practical experiments in the lab or fixing things.</option>
+                                        <option value="D">Helping friends when stressed or organizing groups.</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">3. If you became rich, what would you do for your hometown first?</label>
+                                    <select 
+                                        className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 outline-none"
+                                        value={formData.personality.impact}
+                                        onChange={(e) => setFormData({...formData, personality: {...formData.personality, impact: e.target.value}})}
+                                    >
+                                        <option value="">Choose an impact</option>
+                                        <option value="A">Build a free modern hospital and buy ambulances.</option>
+                                        <option value="B">Build a factory that employs thousands of youth.</option>
+                                        <option value="C">Create a clever mobile app that solves a deep problem.</option>
+                                        <option value="D">Start a big farm to ensure cheap, quality food.</option>
+                                        <option value="E">Start an NGO to fight for rights and fair laws.</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">4. In a difficult group project, what is your natural role?</label>
+                                    <select 
+                                        className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 outline-none"
+                                        value={formData.personality.role}
+                                        onChange={(e) => setFormData({...formData, personality: {...formData.personality, role: e.target.value}})}
+                                    >
+                                        <option value="">Choose your natural role</option>
+                                        <option value="A">The Planner: I divide work, make schedules, organize everyone.</option>
+                                        <option value="B">The Researcher: I go straight to the library or Google for facts.</option>
+                                        <option value="C">The Builder: I physically build the final presentation or model.</option>
+                                        <option value="D">The Speaker: I confidently stand up and present to the teacher.</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="pt-6 flex gap-4">
+                                <button
+                                    onClick={handleBack}
+                                    className="flex-1 py-4 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors"
+                                >
+                                    Back
+                                </button>
+                                <button
+                                    onClick={handleFindMatches}
+                                    className="flex-1 py-4 bg-accent text-white font-bold rounded-xl hover:bg-accent/90 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20"
+                                >
+                                    Run AI Analysis <Sparkles size={20} />
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 4 && (
                         <div className="space-y-8">
                             {loading ? (
                                 <div className="text-center py-20">
@@ -184,9 +286,19 @@ const GuidanceWizard = () => {
                                 </div>
                             ) : (
                                 <>
-                                    <div className="text-center mb-8">
+                                    <div className="text-center mb-10 max-w-2xl mx-auto">
                                         <h2 className="text-3xl font-bold text-slate-900 mb-2">Top Recommendations for You</h2>
-                                        <p className="text-slate-500">Based on your interest in "{formData.interests}"</p>
+                                        {synthesis ? (
+                                            <div className="mt-6 text-left p-6 bg-indigo-50 border border-indigo-100 rounded-2xl text-slate-700 text-sm leading-relaxed relative shadow-inner">
+                                                <div className="absolute -top-3 -left-3 p-2 bg-indigo-600 rounded-lg text-white shadow-md">
+                                                    <Sparkles size={16} />
+                                                </div>
+                                                <strong className="block text-indigo-900 mb-2 text-xs uppercase tracking-wider">AI Profile Synthesis</strong>
+                                                <span className="italic">"{synthesis}"</span>
+                                            </div>
+                                        ) : (
+                                            <p className="text-slate-500 mt-2">Based on your unique profile.</p>
+                                        )}
                                     </div>
 
                                     <div className="grid md:grid-cols-2 gap-6">

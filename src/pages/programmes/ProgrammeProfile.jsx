@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
-import { BookOpen, Clock, Award, School, ChevronDown, CheckCircle, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
+import { BookOpen, Clock, Award, School, ChevronDown, CheckCircle, ArrowLeft, ArrowRight, Loader2, Briefcase } from 'lucide-react';
 
 const ProgrammeProfile = () => {
     const { id } = useParams();
@@ -122,6 +122,30 @@ const ProgrammeProfile = () => {
                             </h2>
                             <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
                                 <p>{programme.description}</p>
+                            </div>
+                        </section>
+                    )}
+
+                    {/* Career Outlook */}
+                    {programme.career_outlooks && programme.career_outlooks.length > 0 && (
+                        <section>
+                            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 mt-4">
+                                Career Outlook
+                            </h2>
+                            <div className="grid md:grid-cols-2 gap-6">
+                                {programme.career_outlooks.map((career, idx) => (
+                                    <div key={idx} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group flex items-start gap-4 hover:-translate-y-1">
+                                        <div className="p-3 bg-indigo-50 rounded-xl text-indigo-600 group-hover:bg-accent group-hover:text-white transition-colors shrink-0 shadow-sm">
+                                            <Briefcase size={22} />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-slate-800 text-lg mb-2 group-hover:text-accent transition-colors">{career.title.replace('[AI Auto-Generated] ', '')}</h3>
+                                            <p className="text-slate-600 text-sm leading-relaxed">
+                                                {career.description.replace('[AI Auto-Generated] ', '').trim()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </section>
                     )}
