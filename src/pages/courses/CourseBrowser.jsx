@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
 import CourseCard from '../../components/courses/CourseCard';
 import FilterSidebar from '../../components/courses/FilterSidebar';
 import { Search, Filter, Loader2, ChevronLeft, ChevronRight, X } from 'lucide-react';
@@ -209,6 +210,7 @@ const CourseBrowser = () => {
                     </div>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 };

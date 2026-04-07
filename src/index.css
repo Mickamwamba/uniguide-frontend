@@ -8,8 +8,9 @@
   body {
     @apply bg-background text-primary font-sans antialiased;
   }
-  
-  h1, h2, h3, h4, h5, h6 {
+
+  /* Only apply display font to page-level headings, not form labels */
+  .page-heading {
     @apply font-display tracking-wide;
   }
 }
@@ -18,8 +19,12 @@
   .btn-primary {
     @apply px-6 py-3 rounded-xl bg-primary text-white font-medium hover:bg-slate-800 transition-all duration-300 shadow-lg shadow-slate-900/10 active:scale-95;
   }
-  
+
   .btn-accent {
     @apply px-6 py-3 rounded-xl bg-accent text-white font-medium hover:bg-accent-hover transition-all duration-300 shadow-lg shadow-indigo-500/20 active:scale-95;
+  }
+
+  .btn-warm {
+    @apply px-6 py-3 rounded-xl bg-warm text-white font-medium hover:bg-warm-hover transition-all duration-300 shadow-lg shadow-amber-400/20 active:scale-95;
   }
 }

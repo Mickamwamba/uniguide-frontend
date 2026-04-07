@@ -15,6 +15,11 @@ export default {
                     DEFAULT: '#6366F1', // Indigo 500
                     hover: '#4F46E5', // Indigo 600
                 },
+                warm: {
+                    DEFAULT: '#F59E0B', // Amber 400 — achievement, progress
+                    hover: '#D97706',   // Amber 500
+                    light: '#FEF3C7',   // Amber 50 — soft highlights
+                },
                 background: '#FAF9F6', // Off-white/Cream
                 surface: '#FFFFFF',
             },

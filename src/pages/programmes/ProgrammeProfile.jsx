@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
 import { BookOpen, Clock, Award, School, ChevronDown, CheckCircle, ArrowLeft, ArrowRight, Loader2, Briefcase } from 'lucide-react';
 
 const ProgrammeProfile = () => {
@@ -242,6 +243,7 @@ const ProgrammeProfile = () => {
                     </section>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 };

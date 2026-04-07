@@ -1,0 +1,46 @@
+import { Link } from 'react-router-dom';
+import { BookOpen, Mail } from 'lucide-react';
+
+const Footer = () => (
+    <footer className="bg-white border-t border-slate-100 mt-auto">
+        <div className="container mx-auto px-6 py-10">
+            <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-8">
+                {/* Brand */}
+                <div className="flex flex-col items-center md:items-start gap-2">
+                    <Link to="/" className="flex items-center gap-2">
+                        <div className="w-7 h-7 bg-accent rounded-lg flex items-center justify-center text-white">
+                            <BookOpen size={16} strokeWidth={2.5} />
+                        </div>
+                        <span className="page-heading text-xl font-bold text-primary">UniGuide</span>
+                    </Link>
+                    <p className="text-sm text-slate-500 max-w-xs text-center md:text-left">
+                        Helping Tanzanian A-Level graduates find the right university course.
+                    </p>
+                </div>
+
+                {/* Nav links */}
+                <div className="flex flex-col items-center md:items-start gap-2 text-sm text-slate-600">
+                    <span className="font-semibold text-slate-800 mb-1">Explore</span>
+                    <Link to="/universities" className="hover:text-accent transition-colors">Universities</Link>
+                    <Link to="/courses" className="hover:text-accent transition-colors">Courses</Link>
+                    <Link to="/guidance" className="hover:text-accent transition-colors">Find My Course</Link>
+                    <Link to="/advisor" className="hover:text-accent transition-colors">AI Guide</Link>
+                </div>
+
+                {/* Contact */}
+                <div className="flex flex-col items-center md:items-start gap-2 text-sm text-slate-600">
+                    <span className="font-semibold text-slate-800 mb-1">Contact</span>
+                    <a href="mailto:hello@uniguide.co.tz" className="flex items-center gap-1.5 hover:text-accent transition-colors">
+                        <Mail size={14} /> hello@uniguide.co.tz
+                    </a>
+                </div>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-slate-100 text-center text-xs text-slate-400">
+                © {new Date().getFullYear()} UniGuide Tanzania. All rights reserved.
+            </div>
+        </div>
+    </footer>
+);
+
+export default Footer;

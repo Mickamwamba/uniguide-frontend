@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
 import UniversityCard from '../../components/universities/UniversityCard';
 import { Search, MapPin, Building, Loader2, Filter, X } from 'lucide-react';
 
@@ -161,6 +162,8 @@ const UniversityBrowser = () => {
                     </>
                 )}
             </div>
+
+            <Footer />
 
             {/* Mobile Filters Modal */}
             {showMobileFilters && (

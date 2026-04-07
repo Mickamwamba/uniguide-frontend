@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
 import { Send, Loader2, Sparkles, User, Bot } from 'lucide-react';
 
 const ChatAdvisor = () => {
@@ -144,6 +145,7 @@ const ChatAdvisor = () => {
                     </div>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 };

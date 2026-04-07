@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
 import CourseCard from '../../components/courses/CourseCard';
 import { MapPin, Mail, Globe, Award, BookOpen, Loader2, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 
@@ -205,6 +206,7 @@ const UniversityProfile = () => {
                     )}
                 </div>
             </div>
+            <Footer />
         </div>
     );
 };
