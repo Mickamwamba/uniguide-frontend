@@ -29,7 +29,7 @@ const FilterSidebar = ({ filters, setFilters, onClear, className = "" }) => {
     const fetchUniversities = async () => {
         try {
             // Fetch all universities for the dropdown
-            const response = await fetch('http://127.0.0.1:8000/api/universities/');
+            const response = await fetch('/api/universities/');
             const data = await response.json();
             // Since we disabled pagination for universities, data is the array itself
             setUniversities(data);

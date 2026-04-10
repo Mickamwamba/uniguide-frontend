@@ -25,7 +25,7 @@ const UniversityBrowser = () => {
 
     const fetchUniversities = async () => {
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/universities/');
+            const response = await fetch('/api/universities/');
             const data = await response.json();
             // Assuming pagination is disabled for unis as per previous task
             setUniversities(data);

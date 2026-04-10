@@ -15,12 +15,12 @@ const UniversityProfile = () => {
         const fetchData = async () => {
             try {
                 // Fetch University Details
-                const uniRes = await fetch(`http://127.0.0.1:8000/api/universities/${id}/`);
+                const uniRes = await fetch(`/api/universities/${id}/`);
                 const uniData = await uniRes.json();
                 setUniversity(uniData);
 
                 // Fetch Preview Courses (Limit 5)
-                const coursesRes = await fetch(`http://127.0.0.1:8000/api/programmes/?university=${id}&page_size=3`);
+                const coursesRes = await fetch(`/api/programmes/?university=${id}&page_size=3`);
                 const coursesData = await coursesRes.json();
 
                 // Handle pagination response structure

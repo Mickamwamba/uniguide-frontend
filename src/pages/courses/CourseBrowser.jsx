@@ -54,7 +54,7 @@ const CourseBrowser = () => {
             // Update URL without reloading (optional but good for UX)
             setSearchParams(params);
 
-            const response = await fetch(`http://127.0.0.1:8000/api/programmes/?${params.toString()}`);
+            const response = await fetch(`/api/programmes/?${params.toString()}`);
             const data = await response.json();
 
             // Handle Paginated Response
