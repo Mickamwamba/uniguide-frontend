@@ -72,7 +72,7 @@ const GuidanceWizard = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/recommend/', {
+            const response = await fetch('/api/recommend/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -193,7 +193,7 @@ const GuidanceWizard = () => {
                             <div className="pt-4">
                                 <button
                                     onClick={() => advanceStep('Academic profile saved')}
-                                    disabled={!formData.combination}
+                                    disabled={!formData.combination || subjects.some(s => !formData.grades[s])}
                                     className="w-full py-4 bg-accent text-white font-bold rounded-xl hover:bg-accent-hover transition-colors flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
                                 >
                                     Continue <ChevronRight size={20} />
