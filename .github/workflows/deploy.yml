@@ -25,4 +25,5 @@ jobs:
             
             # Rebuild only the frontend web container
             cd ..
+            docker-compose rm -sf web
             docker-compose up -d --build web
