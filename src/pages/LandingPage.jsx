@@ -113,15 +113,15 @@ const LandingPage = () => {
             </section>
 
             {/* AI Advisor CTA Banner */}
-            <section className="py-16 bg-gradient-to-r from-indigo-600 to-purple-600">
+            <section className="py-16 bg-gradient-to-r from-indigo-500/10 to-purple-500/10">
                 <div className="container mx-auto px-6 text-center">
-                    <h2 className="page-heading text-3xl font-bold text-white mb-4">Still not sure? Ask the AI Guide</h2>
-                    <p className="text-indigo-200 mb-8 max-w-xl mx-auto">
+                    <h2 className="page-heading text-3xl font-bold text-indigo-950 mb-4">Still not sure? Ask the AI Guide</h2>
+                    <p className="text-indigo-900/70 mb-8 max-w-xl mx-auto">
                         Chat directly with our AI advisor — ask anything about university life, entry requirements, or which degree fits your goals.
                     </p>
                     <Link
                         to="/advisor"
-                        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-indigo-700 font-semibold hover:bg-indigo-50 transition-all shadow-lg"
+                        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent text-white font-semibold hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg"
                     >
                         <MessageCircle size={18} />
                         Chat with AI Guide

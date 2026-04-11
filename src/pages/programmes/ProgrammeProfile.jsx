@@ -204,14 +204,12 @@ const ProgrammeProfile = () => {
                                 </div>
                             )}
                         </div>
-                    </section>
-
-                    {/* CTAs / Interested Section (Moved to Bottom) */}
+                    </section>                    {/* CTAs / Interested Section (Moved to Bottom) */}
                     <section className="pt-8 border-t border-slate-200">
-                        <div className="bg-slate-900 rounded-3xl p-8 md:p-12 text-center text-white shadow-xl relative overflow-hidden">
+                        <div className="bg-slate-100 border border-slate-200 rounded-3xl p-8 md:p-12 text-center shadow-sm relative overflow-hidden">
                             <div className="relative z-10 max-w-2xl mx-auto">
-                                <h3 className="font-bold text-2xl md:text-3xl mb-4">Interested in this programme?</h3>
-                                <p className="text-slate-300 text-lg mb-8">
+                                <h3 className="font-bold text-2xl md:text-3xl text-slate-900 mb-4">Interested in this programme?</h3>
+                                <p className="text-slate-600 text-lg mb-8">
                                     Visit the university website for detailed admission requirements, fee structures, and application deadlines.
                                 </p>
 
@@ -220,24 +218,18 @@ const ProgrammeProfile = () => {
                                         href={`http://${programme.university_name.toLowerCase().replace(/\s+/g, '')}.ac.tz`}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="inline-flex items-center justify-center px-8 py-4 bg-accent hover:bg-accent/90 text-white font-bold rounded-xl transition-all hover:scale-105"
+                                        className="inline-flex items-center justify-center px-8 py-4 bg-accent hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg"
                                     >
                                         Visit Official Website
                                         <ArrowRight size={18} className="ml-2" />
                                     </a>
                                     <Link
                                         to={`/universities?search=${programme.university_name}`}
-                                        className="inline-flex items-center justify-center px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl transition-all border border-white/10"
+                                        className="inline-flex items-center justify-center px-8 py-4 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-xl transition-all border border-slate-300 shadow-sm"
                                     >
                                         View University Profile
                                     </Link>
                                 </div>
-                            </div>
-
-                            {/* Decorative Background Elements */}
-                            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
-                                <div className="absolute -top-24 -left-24 w-64 h-64 bg-accent rounded-full blur-3xl"></div>
-                                <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-indigo-600 rounded-full blur-3xl"></div>
                             </div>
                         </div>
                     </section>
