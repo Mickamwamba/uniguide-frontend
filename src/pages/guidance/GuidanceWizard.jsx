@@ -29,8 +29,6 @@ const COMBINATIONS = [
     { value: 'KEC', label: 'KEC — Kiswahili, English, Chinese' },
 ];
 
-const GRADE_OPTIONS = ['A', 'B', 'C', 'D', 'E', 'S', 'F'];
-
 // Map combination codes to their subject names
 const COMBINATION_SUBJECTS = {
     PCM: ['Physics', 'Chemistry', 'Mathematics'],
@@ -60,7 +58,6 @@ const GuidanceWizard = () => {
     const [formData, setFormData] = useState({
         completedYear: '',
         combination: '',
-        grades: {},
         interests: '',
         aspirations: [],
         personality: {
@@ -79,10 +76,6 @@ const GuidanceWizard = () => {
 
     const handleBack = () => setStep(prev => prev - 1);
 
-    const handleGradeChange = (subject, grade) => {
-        setFormData(prev => ({ ...prev, grades: { ...prev.grades, [subject]: grade } }));
-    };
-
     const handleFindMatches = async () => {
         advanceStep('');
         setLoading(true);
@@ -94,7 +87,6 @@ const GuidanceWizard = () => {
                 body: JSON.stringify({
                     interests: formData.interests,
                     combination: formData.combination,
-                    grades: formData.grades,
                     personality: formData.personality
                 }),
             });
@@ -174,7 +166,7 @@ const GuidanceWizard = () => {
                                     <select
                                         className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 outline-none text-slate-700"
                                         value={formData.combination}
-                                        onChange={(e) => setFormData({ ...formData, combination: e.target.value, grades: {} })}
+                                        onChange={(e) => setFormData({ ...formData, combination: e.target.value })}
                                     >
                                         <option value="">Select your combination</option>
                                         {COMBINATIONS.map(c => (
@@ -182,34 +174,12 @@ const GuidanceWizard = () => {
                                         ))}
                                     </select>
                                 </div>
-
-                                {/* Grades — shown only after combination is selected */}
-                                {subjects.length > 0 && (
-                                    <div className="animate-fade-in">
-                                        <label className="block text-sm font-semibold text-slate-700 mb-3">Your A-Level Grades</label>
-                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                            {subjects.map(subject => (
-                                                <div key={subject} className="flex flex-col gap-1.5">
-                                                    <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">{subject}</span>
-                                                    <select
-                                                        className="p-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 outline-none text-slate-700 text-sm"
-                                                        value={formData.grades[subject] || ''}
-                                                        onChange={(e) => handleGradeChange(subject, e.target.value)}
-                                                    >
-                                                        <option value="">Grade</option>
-                                                        {GRADE_OPTIONS.map(g => <option key={g} value={g}>{g}</option>)}
-                                                    </select>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
                             </div>
 
                             <div className="pt-4">
                                 <button
                                     onClick={() => advanceStep('Academic profile saved')}
-                                    disabled={!formData.combination || subjects.some(s => !formData.grades[s])}
+                                    disabled={!formData.combination}
                                     className="w-full py-4 bg-accent text-white font-bold rounded-xl hover:bg-accent-hover transition-colors flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
                                 >
                                     Continue <ChevronRight size={20} />
