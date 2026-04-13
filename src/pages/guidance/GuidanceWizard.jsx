@@ -12,26 +12,42 @@ const STEPS = [
 ];
 
 const COMBINATIONS = [
-    { value: 'PCM', label: 'PCM — Physics, Chemistry, Math' },
+    { value: 'PCM', label: 'PCM — Physics, Chemistry, Mathematics' },
     { value: 'PCB', label: 'PCB — Physics, Chemistry, Biology' },
-    { value: 'PGM', label: 'PGM — Physics, Geography, Math' },
-    { value: 'EGM', label: 'EGM — Economics, Geography, Math' },
-    { value: 'HGL', label: 'HGL — History, Geography, Language' },
-    { value: 'HGE', label: 'HGE — History, Geography, Economics' },
+    { value: 'PGM', label: 'PGM — Physics, Geography, Mathematics' },
+    { value: 'PMC', label: 'PMC — Physics, Mathematics, Computer Science' },
+    { value: 'EGM', label: 'EGM — Economics, Geography, Mathematics' },
+    { value: 'CBG', label: 'CBG — Chemistry, Biology, Geography' },
+    { value: 'CBA', label: 'CBA — Chemistry, Biology, Agriculture' },
+    { value: 'CBN', label: 'CBN — Chemistry, Biology, Food and Human Nutrition' },
+    { value: 'HGL', label: 'HGL — History, Geography, English Language' },
+    { value: 'HGK', label: 'HGK — History, Geography, Kiswahili' },
+    { value: 'HKL', label: 'HKL — History, Kiswahili, English Language' },
+    { value: 'KLF', label: 'KLF — Kiswahili, English Language, French' },
     { value: 'ECA', label: 'ECA — Economics, Commerce, Accountancy' },
+    { value: 'HGE', label: 'HGE — History, Geography, Economics' },
+    { value: 'KEC', label: 'KEC — Kiswahili, English, Chinese' },
 ];
 
 const GRADE_OPTIONS = ['A', 'B', 'C', 'D', 'E', 'S', 'F'];
 
 // Map combination codes to their subject names
 const COMBINATION_SUBJECTS = {
-    PCM: ['Physics', 'Chemistry', 'Math'],
+    PCM: ['Physics', 'Chemistry', 'Mathematics'],
     PCB: ['Physics', 'Chemistry', 'Biology'],
-    PGM: ['Physics', 'Geography', 'Math'],
-    EGM: ['Economics', 'Geography', 'Math'],
-    HGL: ['History', 'Geography', 'Language'],
-    HGE: ['History', 'Geography', 'Economics'],
+    PGM: ['Physics', 'Geography', 'Mathematics'],
+    PMC: ['Physics', 'Mathematics', 'Computer Science'],
+    EGM: ['Economics', 'Geography', 'Mathematics'],
+    CBG: ['Chemistry', 'Biology', 'Geography'],
+    CBA: ['Chemistry', 'Biology', 'Agriculture'],
+    CBN: ['Chemistry', 'Biology', 'Food and Human Nutrition'],
+    HGL: ['History', 'Geography', 'English Language'],
+    HGK: ['History', 'Geography', 'Kiswahili'],
+    HKL: ['History', 'Kiswahili', 'English Language'],
+    KLF: ['Kiswahili', 'English Language', 'French'],
     ECA: ['Economics', 'Commerce', 'Accountancy'],
+    HGE: ['History', 'Geography', 'Economics'],
+    KEC: ['Kiswahili', 'English', 'Chinese'],
 };
 
 const GuidanceWizard = () => {
@@ -359,8 +375,8 @@ const GuidanceWizard = () => {
                                     </div>
 
                                     <div className="grid md:grid-cols-2 gap-6">
-                                        {matches.map(prog => (
-                                            <CourseCard key={prog.id} programme={prog} />
+                                        {matches.map((prog, idx) => (
+                                            <CourseCard key={prog.id || prog.generic_name || idx} programme={prog} />
                                         ))}
                                     </div>
 
