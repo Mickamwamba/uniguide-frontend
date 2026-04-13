@@ -375,8 +375,8 @@ const GuidanceWizard = () => {
                                     </div>
 
                                     <div className="grid md:grid-cols-2 gap-6">
-                                        {matches.map(prog => (
-                                            <CourseCard key={prog.id} programme={prog} />
+                                        {matches.map((prog, idx) => (
+                                            <CourseCard key={prog.id || prog.generic_name || idx} programme={prog} />
                                         ))}
                                     </div>
 
