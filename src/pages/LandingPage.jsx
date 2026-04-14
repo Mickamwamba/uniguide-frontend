@@ -112,7 +112,7 @@ const LandingPage = () => {
                 </div>
             </section>
 
-            {/* AI Advisor CTA Banner */}
+            {/* AI Advisor CTA Banner
             <section className="py-16 bg-gradient-to-r from-indigo-500/10 to-purple-500/10">
                 <div className="container mx-auto px-6 text-center">
                     <h2 className="page-heading text-3xl font-bold text-indigo-950 mb-4">Still not sure? Ask the AI Guide</h2>
@@ -128,6 +128,7 @@ const LandingPage = () => {
                     </Link>
                 </div>
             </section>
+            */}
 
             <Footer />
         </div>

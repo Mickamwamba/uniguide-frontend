@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { GraduationCap, Clock, School, Award, ArrowRight, Building2 } from 'lucide-react';
+import { GraduationCap, Clock, School, Award, ArrowRight, Building2, ChevronDown, ChevronUp } from 'lucide-react';
 
 const CourseCard = ({ programme }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+
     // If it's a grouped cluster from Agentic Search
     if (programme.offered_at) {
+        const hasManyOffers = programme.offered_at.length > 5;
+        const visibleOffers = isExpanded ? programme.offered_at : programme.offered_at.slice(0, 5);
         return (
             <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
                 <div className="flex items-start justify-between mb-0">
@@ -22,7 +26,7 @@ const CourseCard = ({ programme }) => {
                 <div className="mt-4 pt-4 border-t border-slate-100">
                     <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Offered At {programme.offered_at.length} Institutions:</p>
                     <div className="flex flex-col gap-2">
-                        {programme.offered_at.map((offer) => (
+                        {visibleOffers.map((offer) => (
                             <Link 
                                 key={offer.id} 
                                 to={`/programmes/${offer.id}`}
@@ -46,6 +50,19 @@ const CourseCard = ({ programme }) => {
                                 </div>
                             </Link>
                         ))}
+                        
+                        {hasManyOffers && (
+                            <button
+                                onClick={() => setIsExpanded(!isExpanded)}
+                                className="mt-2 w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-indigo-600 bg-indigo-50/50 hover:bg-indigo-50 border border-transparent hover:border-indigo-100 rounded-xl transition-all"
+                            >
+                                {isExpanded ? (
+                                    <>Show Less <ChevronUp size={16} /></>
+                                ) : (
+                                    <>Show {programme.offered_at.length - 5} More Institutions <ChevronDown size={16} /></>
+                                )}
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
