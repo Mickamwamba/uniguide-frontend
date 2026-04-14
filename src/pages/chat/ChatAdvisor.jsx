@@ -6,7 +6,7 @@ import { Send, Loader2, Sparkles, User, Bot } from 'lucide-react';
 
 const ChatAdvisor = () => {
     const [messages, setMessages] = useState([
-        { role: 'model', text: 'Hi! I am your UniGuide AI Advisor. Ask me anything about universities and courses in Tanzania. 🇹🇿' }
+        { role: 'model', text: 'Hi! I am your Pathfinder AI Advisor. Ask me anything about universities and courses in Tanzania. 🇹🇿' }
     ]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
@@ -70,7 +70,7 @@ const ChatAdvisor = () => {
                             <Sparkles size={24} className="text-white" />
                         </div>
                         <div>
-                            <h1 className="font-bold text-xl">UniGuide Student Advisor</h1>
+                            <h1 className="font-bold text-xl">Pathfinder Student Advisor</h1>
                             <p className="text-slate-400 text-sm">Your personal AI academic counselor</p>
                         </div>
                     </div>

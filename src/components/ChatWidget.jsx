@@ -4,7 +4,7 @@ import { MessageCircle, X, Send, Loader2, Sparkles, User, Bot } from 'lucide-rea
 const ChatWidget = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
-        { role: 'model', text: 'Hi! I am your UniGuide AI Advisor. Ask me anything about universities and courses in Tanzania. 🇹🇿' }
+        { role: 'model', text: 'Hi! I am your Pathfinder AI Advisor. Ask me anything about universities and courses in Tanzania. 🇹🇿' }
     ]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
@@ -69,7 +69,7 @@ const ChatWidget = () => {
                                 <Sparkles size={16} className="text-white" />
                             </div>
                             <div>
-                                <h3 className="font-bold text-sm">UniGuide Advisor</h3>
+                                <h3 className="font-bold text-sm">Pathfinder Advisor</h3>
                                 <p className="text-xs text-slate-400">Powered by Gemini AI</p>
                             </div>
                         </div>

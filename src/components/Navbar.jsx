@@ -25,7 +25,7 @@ const Navbar = () => {
                     <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center text-white">
                         <BookOpen size={20} strokeWidth={2.5} />
                     </div>
-                    <span className="page-heading text-2xl font-bold text-primary">UniGuide</span>
+                    <span className="page-heading text-2xl font-bold text-primary">Pathfinder</span>
                 </Link>
 
                 {/* Desktop nav links */}
@@ -60,24 +60,24 @@ const Navbar = () => {
                             <span>Search</span>
                         </button>
                     )}
-                    <Link
+                    {/* <Link
                         to="/advisor"
                         className="flex items-center gap-2 px-4 py-2 rounded-full bg-accent hover:bg-accent-hover text-white transition-all shadow-lg shadow-indigo-500/20 text-sm font-medium"
                     >
                         <Sparkles size={16} />
                         <span>AI Guide</span>
-                    </Link>
+                    </Link> */}
                 </div>
 
                 {/* Mobile: AI Guide + hamburger */}
                 <div className="flex md:hidden items-center gap-2">
-                    <Link
+                    {/* <Link
                         to="/advisor"
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent text-white text-xs font-medium shadow-md shadow-indigo-500/20"
                     >
                         <Sparkles size={13} />
                         AI Guide
-                    </Link>
+                    </Link> */}
                     <button
                         onClick={() => setMobileOpen(!mobileOpen)}
                         className="p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
@@ -108,7 +108,7 @@ const Navbar = () => {
                         <MobileNavLink to="/universities" onClick={() => setMobileOpen(false)}>Universities</MobileNavLink>
                         <MobileNavLink to="/courses" onClick={() => setMobileOpen(false)}>Courses</MobileNavLink>
                         <MobileNavLink to="/guidance" onClick={() => setMobileOpen(false)}>Find My Course</MobileNavLink>
-                        <MobileNavLink to="/advisor" onClick={() => setMobileOpen(false)}>AI Guide</MobileNavLink>
+                        {/* <MobileNavLink to="/advisor" onClick={() => setMobileOpen(false)}>AI Guide</MobileNavLink> */}
                     </div>
                 </div>
             )}

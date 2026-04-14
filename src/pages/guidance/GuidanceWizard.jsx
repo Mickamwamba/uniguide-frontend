@@ -7,7 +7,7 @@ import { ChevronRight, GraduationCap, Sparkles, BookOpen, Loader2, CheckCircle }
 const STEPS = [
     { label: 'Academic',    icon: <GraduationCap size={20} />, color: 'bg-indigo-50 text-indigo-600' },
     { label: 'Interests',   icon: <Sparkles size={20} />,      color: 'bg-purple-50 text-purple-600' },
-    { label: 'Personality', icon: <BookOpen size={20} />,      color: 'bg-blue-50 text-blue-600' },
+    { label: 'Archetype',   icon: <BookOpen size={20} />,      color: 'bg-blue-50 text-blue-600' },
     { label: 'Results',     icon: <CheckCircle size={20} />,   color: 'bg-amber-50 text-amber-600' },
 ];
 
@@ -55,16 +55,15 @@ const GuidanceWizard = () => {
     const [loading, setLoading] = useState(false);
     const [matches, setMatches] = useState([]);
     const [synthesis, setSynthesis] = useState('');
+    const [isSendingEmail, setIsSendingEmail] = useState(false);
     const [formData, setFormData] = useState({
-        completedYear: '',
         combination: '',
         interests: '',
-        aspirations: [],
         personality: {
-            environment: '',
-            activity: '',
-            impact: '',
-            role: ''
+            school_moment: '',
+            hobby: '',
+            dealbreaker: '',
+            endgame: ''
         }
     });
 
@@ -85,8 +84,8 @@ const GuidanceWizard = () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    interests: formData.interests,
                     combination: formData.combination,
+                    interests: formData.interests,
                     personality: formData.personality
                 }),
             });
@@ -188,6 +187,8 @@ const GuidanceWizard = () => {
                         </div>
                     )}
 
+
+
                     {/* ── Step 2: Interests ── */}
                     {step === 2 && (
                         <div className="space-y-6 max-w-2xl mx-auto animate-fade-in">
@@ -225,65 +226,66 @@ const GuidanceWizard = () => {
                         </div>
                     )}
 
-                    {/* ── Step 3: Personality ── */}
+                    {/* ── Step 3: The Archetype Quiz ── */}
                     {step === 3 && (
                         <div className="space-y-6 max-w-2xl mx-auto animate-fade-in">
                             {stepAck && <StepAck message={stepAck} />}
                             <StepHeader
-                                icon={<BookOpen size={32} />}
-                                iconClass="bg-blue-50 text-blue-600"
-                                title="Your Working Style"
-                                subtitle="4 quick questions to help us find your best-fit degrees."
+                                icon={<Sparkles size={32} />}
+                                iconClass="bg-purple-50 text-purple-600"
+                                title="Your Career DNA"
+                                subtitle="Answer 4 quick questions to discover your natural archetype."
                             />
 
                             <div className="space-y-5">
                                 <PersonalitySelect
-                                    label="1. When you imagine your dream job, where are you mostly spending your day?"
-                                    value={formData.personality.environment}
-                                    onChange={(v) => setFormData({ ...formData, personality: { ...formData.personality, environment: v } })}
-                                    placeholder="Choose your preferred environment"
+                                    label="1. Looking back at school, what was your favorite moment?"
+                                    value={formData.personality.school_moment}
+                                    onChange={(v) => setFormData({ ...formData, personality: { ...formData.personality, school_moment: v } })}
+                                    placeholder="Choose your favorite moment"
                                     options={[
-                                        { value: 'A', label: 'In a smart office with a computer and documents.' },
-                                        { value: 'B', label: 'Outside in the field (construction, farm, nature).' },
-                                        { value: 'C', label: 'In a hospital or clinic helping patients directly.' },
-                                        { value: 'D', label: 'Moving around, meeting groups, or running a business.' },
+                                        { value: 'Cracking hard Math/Physics problems', label: 'Cracking a really hard Math/Physics problem' },
+                                        { value: 'Doing lab practicals and experiments', label: 'Doing practicals in the laboratory' },
+                                        { value: 'Leading discussions or debating', label: 'Leading group discussions or debates' },
+                                        { value: 'Helping students understand difficult topics', label: 'Helping friends understand difficult topics' },
+                                        { value: 'Organizing school events or mini-businesses', label: 'Organizing school events or business ideas' },
                                     ]}
                                 />
                                 <PersonalitySelect
-                                    label="2. At school, which of these activities do you actually enjoy most?"
-                                    value={formData.personality.activity}
-                                    onChange={(v) => setFormData({ ...formData, personality: { ...formData.personality, activity: v } })}
+                                    label="2. On a completely free Saturday, what are you most likely doing?"
+                                    value={formData.personality.hobby}
+                                    onChange={(v) => setFormData({ ...formData, personality: { ...formData.personality, hobby: v } })}
                                     placeholder="Choose an activity"
                                     options={[
-                                        { value: 'A', label: 'Calculating numbers, logic, getting exact answers.' },
-                                        { value: 'B', label: 'Debating ideas, writing essays, or presenting.' },
-                                        { value: 'C', label: 'Doing practical experiments in the lab or fixing things.' },
-                                        { value: 'D', label: 'Helping friends when stressed or organising groups.' },
+                                        { value: 'Tinkering with phones/computers', label: 'Tinkering with phones, computers, or learning tech' },
+                                        { value: 'Reading or watching documentaries', label: 'Reading books or watching documentaries/news' },
+                                        { value: 'Socializing and meeting new people', label: 'Going out to socialize and meet new people' },
+                                        { value: 'Drawing, writing, or editing media', label: 'Creating things—drawing, writing, editing videos' },
                                     ]}
                                 />
                                 <PersonalitySelect
-                                    label="3. If you became rich, what would you do for your hometown first?"
-                                    value={formData.personality.impact}
-                                    onChange={(v) => setFormData({ ...formData, personality: { ...formData.personality, impact: v } })}
-                                    placeholder="Choose an impact"
+                                    label="3. What is the ONE thing you NEVER want to do?"
+                                    value={formData.personality.dealbreaker}
+                                    onChange={(v) => setFormData({ ...formData, personality: { ...formData.personality, dealbreaker: v } })}
+                                    placeholder="Choose your dealbreaker"
                                     options={[
-                                        { value: 'A', label: 'Build a free modern hospital and buy ambulances.' },
-                                        { value: 'B', label: 'Build a factory that employs thousands of youth.' },
-                                        { value: 'C', label: 'Create a clever mobile app that solves a deep problem.' },
-                                        { value: 'D', label: 'Start a big farm to ensure cheap, quality food.' },
-                                        { value: 'E', label: 'Start an NGO to fight for rights and fair laws.' },
+                                        { value: 'Memorizing essays or theories', label: 'Memorizing long historical essays or theories' },
+                                        { value: 'Doing complex Math or Physics equations', label: 'Looking at complex Math or Physics equations' },
+                                        { value: 'Public speaking in front of crowds', label: 'Speaking or presenting in front of crowds' },
+                                        { value: 'Working alone in a lab or coding all day', label: 'Stuck in a laboratory or staring at code all day' },
                                     ]}
                                 />
                                 <PersonalitySelect
-                                    label="4. In a difficult group project, what is your natural role?"
-                                    value={formData.personality.role}
-                                    onChange={(v) => setFormData({ ...formData, personality: { ...formData.personality, role: v } })}
-                                    placeholder="Choose your natural role"
+                                    label="4. Looking 10 years ahead, what is your endgame?"
+                                    value={formData.personality.endgame}
+                                    onChange={(v) => setFormData({ ...formData, personality: { ...formData.personality, endgame: v } })}
+                                    placeholder="Choose your career goal"
                                     options={[
-                                        { value: 'A', label: 'The Planner: I divide work, make schedules, organise everyone.' },
-                                        { value: 'B', label: 'The Researcher: I go straight to the library or Google for facts.' },
-                                        { value: 'C', label: 'The Builder: I physically build the final presentation or model.' },
-                                        { value: 'D', label: 'The Speaker: I confidently stand up and present to the teacher.' },
+                                        { value: 'Innovator (Building/Inventing tech)', label: 'The Innovator: I want to build or invent new tech/systems' },
+                                        { value: 'Pillar of Stability (Government/Teaching)', label: 'The Pillar: I want a secure, respected job to provide for my family' },
+                                        { value: 'Caregiver (Saving lives or helping people)', label: 'The Caregiver: I want to actively save lives or defend people' },
+                                        { value: 'The Boss (Entrepreneur/Manager)', label: 'The Boss: I want to start my own companies and lead teams' },
+                                        { value: 'The Explorer (Working out in the field)', label: 'The Explorer: I want an adventurous career out in the field' },
                                     ]}
                                 />
                             </div>
@@ -294,7 +296,8 @@ const GuidanceWizard = () => {
                                 </button>
                                 <button
                                     onClick={handleFindMatches}
-                                    className="flex-1 py-4 bg-accent text-white font-bold rounded-xl hover:bg-accent-hover transition-colors flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20"
+                                    disabled={!formData.personality.school_moment || !formData.personality.hobby || !formData.personality.dealbreaker || !formData.personality.endgame}
+                                    className="flex-1 py-4 bg-accent text-white font-bold rounded-xl hover:bg-accent-hover transition-colors flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 disabled:opacity-40 disabled:cursor-not-allowed"
                                 >
                                     Find My Best Courses <Sparkles size={20} />
                                 </button>
@@ -350,11 +353,78 @@ const GuidanceWizard = () => {
                                         ))}
                                     </div>
 
-                                    <div className="text-center pt-4 border-t border-slate-100">
-                                        <p className="text-slate-500 text-sm mb-4">Want to explore more or have questions?</p>
+                                    <div className="text-center pt-8 border-t border-slate-100 max-w-lg mx-auto">
+                                        <div className="bg-warm-light/30 rounded-2xl p-6 border border-amber-100 mb-6 relative">
+                                            <div className="absolute -top-3 -right-3 p-1.5 bg-green-500 rounded-full text-white shadow-md">
+                                                <CheckCircle size={16} />
+                                            </div>
+                                            <h3 className="font-bold text-slate-900 mb-1">Send these exact AI recommendations!</h3>
+                                            <p className="text-sm text-slate-600 mb-4">Enter your email address and we'll officially send you a copy of these perfect matches so you don't lose them.</p>
+                                            <div className="flex gap-2">
+                                                <input 
+                                                    type="email" 
+                                                    placeholder="Enter your email address" 
+                                                    onChange={(e) => setFormData({...formData, captureEmail: e.target.value})}
+                                                    value={formData.captureEmail || ''}
+                                                    className="flex-1 p-3 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-accent/20"
+                                                />
+                                                <button 
+                                                    disabled={!formData.captureEmail || isSendingEmail}
+                                                    onClick={async () => {
+                                                        setIsSendingEmail(true);
+                                                        setStepAck('');
+                                                        try {
+                                                            const response = await fetch('/api/capture-lead/', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({
+                                                                    email: formData.captureEmail,
+                                                                    combination: formData.combination,
+                                                                    interests: formData.interests,
+                                                                    personality: formData.personality,
+                                                                    synthesis: synthesis,
+                                                                    matches: matches.map(m => m.generic_name).join(', ')
+                                                                })
+                                                            });
+                                                            
+                                                            const data = await response.json();
+                                                            if (!response.ok) {
+                                                                throw new Error(data.error || 'Failed to send email');
+                                                            }
+                                                            
+                                                            const sentEmail = formData.captureEmail;
+                                                            setFormData({...formData, captureEmail: ''});
+                                                            setStepAck(`Success! Your results have been securely sent to ${sentEmail}.`);
+                                                            setTimeout(() => setStepAck(''), 6000);
+                                                        } catch (e) {
+                                                            console.error('Failed to capture lead:', e);
+                                                            setStepAck(`Error: ${e.message}`);
+                                                            setTimeout(() => setStepAck(''), 5000);
+                                                        } finally {
+                                                            setIsSendingEmail(false);
+                                                        }
+                                                    }}
+                                                    className="px-6 py-2 bg-slate-900 text-white font-bold rounded-lg hover:bg-slate-800 disabled:opacity-50 transition-colors whitespace-nowrap flex items-center justify-center gap-2 min-w-[120px]"
+                                                >
+                                                    {isSendingEmail ? (
+                                                        <><Loader2 className="animate-spin" size={16} /> Sending...</>
+                                                    ) : (
+                                                        'Send Now'
+                                                    )}
+                                                </button>
+                                            </div>
+                                            {stepAck && (
+                                                <div className={`mt-4 p-3 rounded-xl text-sm font-semibold flex items-center gap-2 ${stepAck.startsWith('Error') ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-green-50 text-green-700 border border-green-100'}`}>
+                                                    {stepAck.startsWith('Error') ? null : <CheckCircle size={16} />}
+                                                    {stepAck}
+                                                </div>
+                                            )}
+                                        </div>
+                                        
+                                        <p className="text-slate-500 text-sm mb-4">Want to explore more paths?</p>
                                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
                                             <button
-                                                onClick={() => { setStep(1); setMatches([]); setSynthesis(''); }}
+                                                onClick={() => { setStep(1); setMatches([]); setSynthesis(''); setFormData({...formData, captureEmail: ''}); }}
                                                 className="px-6 py-3 bg-slate-100 text-slate-600 font-semibold rounded-xl hover:bg-slate-200 transition-colors"
                                             >
                                                 Start Over
