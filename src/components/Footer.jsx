@@ -11,7 +11,7 @@ const Footer = () => (
                         <div className="w-7 h-7 bg-accent rounded-lg flex items-center justify-center text-white">
                             <BookOpen size={16} strokeWidth={2.5} />
                         </div>
-                        <span className="page-heading text-xl font-bold text-primary">UniGuide</span>
+                        <span className="page-heading text-xl font-bold text-primary">Pathfinder</span>
                     </Link>
                     <p className="text-sm text-slate-500 max-w-xs text-center md:text-left">
                         Helping Tanzanian A-Level graduates find the right university course.
@@ -30,14 +30,14 @@ const Footer = () => (
                 {/* Contact */}
                 <div className="flex flex-col items-center md:items-start gap-2 text-sm text-slate-600">
                     <span className="font-semibold text-slate-800 mb-1">Contact</span>
-                    <a href="mailto:hello@uniguide.co.tz" className="flex items-center gap-1.5 hover:text-accent transition-colors">
-                        <Mail size={14} /> hello@uniguide.co.tz
+                    <a href="mailto:hello@unipathfinder.co.tz" className="flex items-center gap-1.5 hover:text-accent transition-colors">
+                        <Mail size={14} /> hello@unipathfinder.co.tz
                     </a>
                 </div>
             </div>
 
             <div className="mt-8 pt-6 border-t border-slate-100 text-center text-xs text-slate-400">
-                © {new Date().getFullYear()} UniGuide Tanzania. All rights reserved.
+                © {new Date().getFullYear()} Pathfinder Tanzania. All rights reserved.
             </div>
         </div>
     </footer>

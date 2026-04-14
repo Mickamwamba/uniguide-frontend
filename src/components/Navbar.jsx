@@ -25,7 +25,7 @@ const Navbar = () => {
                     <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center text-white">
                         <BookOpen size={20} strokeWidth={2.5} />
                     </div>
-                    <span className="page-heading text-2xl font-bold text-primary">UniGuide</span>
+                    <span className="page-heading text-2xl font-bold text-primary">Pathfinder</span>
                 </Link>
 
                 {/* Desktop nav links */}
