@@ -206,39 +206,36 @@ const GuidanceWizard = () => {
             {/* Quiz progress nav bar */}
             {screen < 7 && (
                 <div className="border-b border-slate-200 bg-white">
-                    <div className="container mx-auto px-6 py-4 flex items-center justify-between gap-6 max-w-4xl">
-                        {/* Step indicators */}
-                        <div className="flex items-center gap-2">
+                    <div className="container mx-auto px-6 py-5 max-w-lg">
+                        <div className="flex items-center">
                             {GROUPS.map((g, i) => {
                                 const done   = activeGroup > i;
                                 const active = activeGroup === i;
                                 return (
                                     <React.Fragment key={g}>
-                                        <div className="flex items-center gap-2">
-                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all
-                                                ${done   ? 'bg-warm text-white' :
-                                                  active ? 'bg-accent text-white' :
+                                        {/* Step */}
+                                        <div className="flex flex-col items-center gap-1.5 shrink-0">
+                                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300
+                                                ${done   ? 'bg-warm text-white shadow-sm shadow-amber-400/30' :
+                                                  active ? 'bg-accent text-white shadow-sm shadow-indigo-500/30' :
                                                            'bg-slate-200 text-slate-400'}`}
                                             >
                                                 {done ? <CheckCircle size={16} /> : i + 1}
                                             </div>
-                                            <span className={`hidden sm:block text-xs font-medium transition-colors
+                                            <span className={`text-xs font-medium transition-colors hidden sm:block
                                                 ${active ? 'text-accent' : done ? 'text-warm' : 'text-slate-400'}`}>
                                                 {g}
                                             </span>
                                         </div>
+
+                                        {/* Connector line */}
                                         {i < GROUPS.length - 1 && (
-                                            <div className={`flex-1 h-1 rounded-full mx-1 transition-all ${activeGroup > i ? 'bg-warm' : 'bg-slate-200'}`} />
+                                            <div className={`flex-1 h-1 mx-3 mb-4 rounded-full transition-all duration-500 ${activeGroup > i ? 'bg-warm' : 'bg-slate-200'}`} />
                                         )}
                                     </React.Fragment>
                                 );
                             })}
                         </div>
-
-                        {/* Question counter */}
-                        <span className="text-xs font-medium text-slate-500 shrink-0">
-                            {screen} of {screenCount}
-                        </span>
                     </div>
                 </div>
             )}
