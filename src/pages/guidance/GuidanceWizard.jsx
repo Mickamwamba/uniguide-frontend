@@ -9,69 +9,41 @@ import { ArrowRight, ArrowLeft, Loader2, CheckCircle, Sparkles } from 'lucide-re
 const STEPS = ['Academic', 'Interests', 'Working style', 'Results'];
 
 const COMBINATIONS = [
-    {
-        value: 'PCM', label: 'PCM',
-        sub: 'Physics, Chemistry, Mathematics — engineering, tech, data, physical sciences.',
-        icon: (
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="1.4">
-                <path d="M11 2 L19 6 V15 L11 19 L3 15 V6 Z"/>
-                <path d="M11 2 V19 M3 6 L19 6"/>
-            </svg>
-        ),
-    },
-    {
-        value: 'PCB', label: 'PCB',
-        sub: 'Physics, Chemistry, Biology — medicine, nursing, pharmacy, life sciences.',
-        icon: (
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="1.4">
-                <circle cx="11" cy="11" r="7"/>
-                <path d="M11 4 C15 7 15 15 11 18 M11 4 C7 7 7 15 11 18"/>
-            </svg>
-        ),
-    },
-    {
-        value: 'EGM', label: 'EGM',
-        sub: 'Economics, Geography, Mathematics — business, finance, planning, analytics.',
-        icon: (
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="1.4">
-                <path d="M3 17 L8 10 L12 13 L19 5" strokeLinecap="round"/>
-                <circle cx="19" cy="5" r="1.5" fill="currentColor"/>
-            </svg>
-        ),
-    },
-    {
-        value: 'HGL', label: 'HGL / HGE',
-        sub: 'Humanities & languages — law, education, journalism, public admin.',
-        icon: (
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="1.4">
-                <rect x="4" y="4" width="14" height="14" rx="1.5"/>
-                <path d="M7 8 H15 M7 11 H13 M7 14 H15"/>
-            </svg>
-        ),
-    },
-    {
-        value: 'OTHER', label: 'Other / Not sure',
-        sub: 'Pick a custom combination (CBG, HKL, PGM…) or let us help.',
-        icon: (
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="1.4">
-                <circle cx="11" cy="11" r="7"/>
-                <path d="M11 7 V11 L14 13"/>
-            </svg>
-        ),
-        wide: true,
-    },
+    { value: 'PCM', label: 'PCM — Physics, Chemistry, Mathematics' },
+    { value: 'PCB', label: 'PCB — Physics, Chemistry, Biology' },
+    { value: 'PGM', label: 'PGM — Physics, Geography, Mathematics' },
+    { value: 'PMC', label: 'PMC — Physics, Mathematics, Computer Science' },
+    { value: 'EGM', label: 'EGM — Economics, Geography, Mathematics' },
+    { value: 'CBG', label: 'CBG — Chemistry, Biology, Geography' },
+    { value: 'CBA', label: 'CBA — Chemistry, Biology, Agriculture' },
+    { value: 'CBN', label: 'CBN — Chemistry, Biology, Food and Human Nutrition' },
+    { value: 'HGL', label: 'HGL — History, Geography, English Language' },
+    { value: 'HGK', label: 'HGK — History, Geography, Kiswahili' },
+    { value: 'HKL', label: 'HKL — History, Kiswahili, English Language' },
+    { value: 'KLF', label: 'KLF — Kiswahili, English Language, French' },
+    { value: 'ECA', label: 'ECA — Economics, Commerce, Accountancy' },
+    { value: 'HGE', label: 'HGE — History, Geography, Economics' },
+    { value: 'KEC', label: 'KEC — Kiswahili, English, Chinese' },
 ];
 
 const GRADES = ['A', 'B', 'C', 'D', 'E', 'S', 'F'];
 
 const COMBINATION_SUBJECTS = {
-    PCM: ['Physics', 'Chemistry', 'Math'],
+    PCM: ['Physics', 'Chemistry', 'Mathematics'],
     PCB: ['Physics', 'Chemistry', 'Biology'],
-    EGM: ['Economics', 'Geography', 'Math'],
-    HGL: ['History', 'Geography', 'Language'],
-    HGE: ['History', 'Geography', 'Economics'],
+    PGM: ['Physics', 'Geography', 'Mathematics'],
+    PMC: ['Physics', 'Mathematics', 'Computer Science'],
+    EGM: ['Economics', 'Geography', 'Mathematics'],
+    CBG: ['Chemistry', 'Biology', 'Geography'],
+    CBA: ['Chemistry', 'Biology', 'Agriculture'],
+    CBN: ['Chemistry', 'Biology', 'Food and Human Nutrition'],
+    HGL: ['History', 'Geography', 'English Language'],
+    HGK: ['History', 'Geography', 'Kiswahili'],
+    HKL: ['History', 'Kiswahili', 'English Language'],
+    KLF: ['Kiswahili', 'English Language', 'French'],
     ECA: ['Economics', 'Commerce', 'Accountancy'],
-    OTHER: [],
+    HGE: ['History', 'Geography', 'Economics'],
+    KEC: ['Kiswahili', 'English', 'Chinese'],
 };
 
 const PERSONALITY_QUESTIONS = [
@@ -79,10 +51,10 @@ const PERSONALITY_QUESTIONS = [
         key: 'environment',
         question: 'When you imagine your dream job, where are you mostly spending your day?',
         options: [
-            { value: 'A', label: 'Smart office',      sub: 'Computer, documents, analysis.' },
-            { value: 'B', label: 'Out in the field',   sub: 'Construction, farm, nature.' },
+            { value: 'A', label: 'Smart office', sub: 'Computer, documents, analysis.' },
+            { value: 'B', label: 'Out in the field', sub: 'Construction, farm, nature.' },
             { value: 'C', label: 'Hospital or clinic', sub: 'Helping patients directly.' },
-            { value: 'D', label: 'On the move',        sub: 'Meeting groups, running a business.' },
+            { value: 'D', label: 'On the move', sub: 'Meeting groups, running a business.' },
         ],
     },
     {
@@ -91,29 +63,29 @@ const PERSONALITY_QUESTIONS = [
         options: [
             { value: 'A', label: 'Numbers & logic', sub: 'Calculating, exact answers.' },
             { value: 'B', label: 'Writing & debate', sub: 'Essays, presenting ideas.' },
-            { value: 'C', label: 'Lab & hands-on',   sub: 'Experiments, fixing things.' },
-            { value: 'D', label: 'Helping others',   sub: 'Organising groups, counselling.' },
+            { value: 'C', label: 'Lab & hands-on', sub: 'Experiments, fixing things.' },
+            { value: 'D', label: 'Helping others', sub: 'Organising groups, counselling.' },
         ],
     },
     {
         key: 'impact',
         question: 'If you became rich, what would you do for your hometown first?',
         options: [
-            { value: 'A', label: 'Free hospital',  sub: 'Modern hospital & ambulances.' },
+            { value: 'A', label: 'Free hospital', sub: 'Modern hospital & ambulances.' },
             { value: 'B', label: 'Factory & jobs', sub: 'Employs thousands of youth.' },
-            { value: 'C', label: 'Tech app',       sub: 'Clever app solving a deep problem.' },
-            { value: 'D', label: 'Big farm',       sub: 'Cheap, quality food for all.' },
-            { value: 'E', label: 'NGO & rights',   sub: 'Fight for fair laws.' },
+            { value: 'C', label: 'Tech app', sub: 'Clever app solving a deep problem.' },
+            { value: 'D', label: 'Big farm', sub: 'Cheap, quality food for all.' },
+            { value: 'E', label: 'NGO & rights', sub: 'Fight for fair laws.' },
         ],
     },
     {
         key: 'role',
         question: 'In a difficult group project, what is your natural role?',
         options: [
-            { value: 'A', label: 'The Planner',    sub: 'Divides work, makes schedules.' },
+            { value: 'A', label: 'The Planner', sub: 'Divides work, makes schedules.' },
             { value: 'B', label: 'The Researcher', sub: 'Finds the facts & evidence.' },
-            { value: 'C', label: 'The Builder',    sub: 'Builds the final product.' },
-            { value: 'D', label: 'The Speaker',    sub: 'Confidently presents to everyone.' },
+            { value: 'C', label: 'The Builder', sub: 'Builds the final product.' },
+            { value: 'D', label: 'The Speaker', sub: 'Confidently presents to everyone.' },
         ],
     },
 ];
@@ -200,15 +172,15 @@ const GuidanceWizard = () => {
                     <div className="container mx-auto px-6 py-5 max-w-lg">
                         <div className="flex items-center">
                             {STEPS.slice(0, -1).concat('Results').map((g, i) => {
-                                const done   = activeGroup > i;
+                                const done = activeGroup > i;
                                 const active = activeGroup === i;
                                 return (
                                     <React.Fragment key={g}>
                                         <div className="flex flex-col items-center gap-1.5 shrink-0">
                                             <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300
-                                                ${done   ? 'bg-warm text-white shadow-sm shadow-amber-400/30' :
-                                                  active ? 'bg-accent text-white shadow-sm shadow-indigo-500/30' :
-                                                           'bg-slate-200 text-slate-400'}`}
+                                                ${done ? 'bg-warm text-white shadow-sm shadow-amber-400/30' :
+                                                    active ? 'bg-accent text-white shadow-sm shadow-indigo-500/30' :
+                                                        'bg-slate-200 text-slate-400'}`}
                                             >
                                                 {done ? <CheckCircle size={16} /> : i + 1}
                                             </div>
@@ -228,7 +200,8 @@ const GuidanceWizard = () => {
                 </div>
             )}
 
-            <div className="container mx-auto px-6 py-12 max-w-2xl">
+            <div className="container mx-auto px-6 py-12 max-w-4xl">
+                <div className="bg-white rounded-3xl p-8 md:p-12 shadow-xl border border-slate-100 min-h-[400px]">
 
                 {/* ── Step 1: Academic ── */}
                 {step === 1 && (
@@ -238,27 +211,20 @@ const GuidanceWizard = () => {
                             sub="We'll only show you programmes that accept it."
                         />
 
-                        <div className="grid grid-cols-2 gap-3 mb-6">
-                            {COMBINATIONS.map(c => (
-                                <button
-                                    key={c.value}
-                                    onClick={() => setFormData(f => ({ ...f, combination: c.value, grades: {} }))}
-                                    className={`relative text-left p-5 rounded-xl border transition-all
-                                        ${c.wide ? 'col-span-2' : ''}
-                                        ${formData.combination === c.value
-                                            ? 'bg-accent/5 border-accent'
-                                            : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm'}`}
+                        <div className="space-y-5 mb-6 animate-fade-in">
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Subject Combination</label>
+                                <select
+                                    className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 outline-none text-slate-700 transition-colors"
+                                    value={formData.combination}
+                                    onChange={(e) => setFormData(f => ({ ...f, combination: e.target.value, grades: {} }))}
                                 >
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3
-                                        ${formData.combination === c.value ? 'bg-accent/10 text-accent' : 'bg-indigo-50 text-indigo-600'}`}>
-                                        {c.icon}
-                                    </div>
-                                    <h3 className={`font-bold text-base leading-tight ${formData.combination === c.value ? 'text-accent' : 'text-slate-900'}`}>
-                                        {c.label}
-                                    </h3>
-                                    <p className="text-xs text-slate-500 mt-1 leading-snug">{c.sub}</p>
-                                </button>
-                            ))}
+                                    <option value="">Select your combination</option>
+                                    {COMBINATIONS.map(c => (
+                                        <option key={c.value} value={c.value}>{c.label}</option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
 
                         {/* Grade inputs — appear after combination selected */}
@@ -489,6 +455,7 @@ const GuidanceWizard = () => {
                         )}
                     </div>
                 )}
+                </div>
             </div>
 
             <Footer />
