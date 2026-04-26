@@ -103,8 +103,9 @@ const GuidanceWizard = () => {
     const [emailAck, setEmailAck] = useState('');
 
     const [formData, setFormData] = useState({
-        combination: '',
-        grades: {},
+        pathway: '',
+        acsee: { combination: '', grades: {} },
+        diploma: { field: '', gpa: '' },
         interests: '',
         personality: { environment: '', activity: '', impact: '', role: '' },
         captureEmail: '',
@@ -140,8 +141,7 @@ const GuidanceWizard = () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    combination: data.combination,
-                    grades: data.grades,
+                    combination: data.pathway === 'ACSEE' ? data.acsee.combination : data.diploma.field,
                     interests: data.interests,
                     personality: data.personality,
                 }),
@@ -158,7 +158,7 @@ const GuidanceWizard = () => {
         }
     };
 
-    const subjects = COMBINATION_SUBJECTS[formData.combination] || [];
+    const subjects = formData.pathway === 'ACSEE' ? (COMBINATION_SUBJECTS[formData.acsee.combination] || []) : [];
     const currentQ = PERSONALITY_QUESTIONS[personalityQ];
     const activeGroup = step === 1 ? 0 : step === 2 ? 1 : step === 3 ? 2 : 3;
 
@@ -207,44 +207,89 @@ const GuidanceWizard = () => {
                 {step === 1 && (
                     <div className="animate-fade-in">
                         <QuizHeader
-                            title="What was your Form 6 combination?"
-                            sub="We'll only show you programmes that accept it."
+                            title="What is your academic background?"
+                            sub="We'll evaluate your qualifications securely on-the-fly."
                         />
 
-                        <div className="space-y-5 mb-6 animate-fade-in">
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Subject Combination</label>
-                                <select
-                                    className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 outline-none text-slate-700 transition-colors"
-                                    value={formData.combination}
-                                    onChange={(e) => setFormData(f => ({ ...f, combination: e.target.value, grades: {} }))}
-                                >
-                                    <option value="">Select your combination</option>
-                                    {COMBINATIONS.map(c => (
-                                        <option key={c.value} value={c.value}>{c.label}</option>
-                                    ))}
-                                </select>
-                            </div>
+                        <div className="grid grid-cols-2 gap-4 mb-6">
+                            <button
+                                onClick={() => setFormData(f => ({ ...f, pathway: 'ACSEE' }))}
+                                className={`p-4 rounded-xl border transition-all text-left ${formData.pathway === 'ACSEE' ? 'border-accent bg-accent/5' : 'border-slate-200 hover:border-slate-300'}`}
+                            >
+                                <h4 className={`font-bold mb-1 ${formData.pathway === 'ACSEE' ? 'text-accent' : 'text-slate-900'}`}>Form 6 Graduate</h4>
+                                <p className="text-xs text-slate-500">I have A-Level principle passes</p>
+                            </button>
+                            <button
+                                onClick={() => setFormData(f => ({ ...f, pathway: 'DIPLOMA' }))}
+                                className={`p-4 rounded-xl border transition-all text-left ${formData.pathway === 'DIPLOMA' ? 'border-accent bg-accent/5' : 'border-slate-200 hover:border-slate-300'}`}
+                            >
+                                <h4 className={`font-bold mb-1 ${formData.pathway === 'DIPLOMA' ? 'text-accent' : 'text-slate-900'}`}>Diploma Graduate</h4>
+                                <p className="text-xs text-slate-500">I have an Ordinary Diploma</p>
+                            </button>
                         </div>
 
-                        {/* Grade inputs — appear after combination selected */}
-                        {subjects.length > 0 && (
-                            <div className="animate-fade-in bg-white rounded-xl border border-slate-200 p-5 mb-6">
-                                <p className="text-sm font-semibold text-slate-700 mb-4">Your grades</p>
-                                <div className="grid grid-cols-3 gap-4">
-                                    {subjects.map(sub => (
-                                        <div key={sub}>
-                                            <label className="text-xs text-slate-500 block mb-1.5">{sub}</label>
-                                            <select
-                                                className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-sm outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
-                                                value={formData.grades[sub] || ''}
-                                                onChange={e => setFormData(f => ({ ...f, grades: { ...f.grades, [sub]: e.target.value } }))}
-                                            >
-                                                <option value="">Grade</option>
-                                                {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
-                                            </select>
+                        {formData.pathway === 'ACSEE' && (
+                            <div className="space-y-5 mb-6 animate-fade-in border-t border-slate-100 pt-6">
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Subject Combination</label>
+                                    <select
+                                        className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 outline-none text-slate-700 transition-colors"
+                                        value={formData.acsee.combination}
+                                        onChange={(e) => setFormData(f => ({ ...f, acsee: { combination: e.target.value, grades: {} } }))}
+                                    >
+                                        <option value="">Select your combination</option>
+                                        {COMBINATIONS.map(c => (
+                                            <option key={c.value} value={c.value}>{c.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                {COMBINATION_SUBJECTS[formData.acsee.combination]?.length > 0 && (
+                                    <div className="animate-fade-in bg-white rounded-xl border border-slate-200 p-5">
+                                        <p className="text-sm font-semibold text-slate-700 mb-4">Your grades</p>
+                                        <div className="grid grid-cols-3 gap-4">
+                                            {COMBINATION_SUBJECTS[formData.acsee.combination].map(sub => (
+                                                <div key={sub}>
+                                                    <label className="text-xs text-slate-500 block mb-1.5">{sub}</label>
+                                                    <select
+                                                        className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-sm outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
+                                                        value={formData.acsee.grades[sub] || ''}
+                                                        onChange={e => setFormData(f => ({ ...f, acsee: { ...f.acsee, grades: { ...f.acsee.grades, [sub]: e.target.value } } }))}
+                                                    >
+                                                        <option value="">Grade</option>
+                                                        {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
+                                                    </select>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {formData.pathway === 'DIPLOMA' && (
+                            <div className="space-y-4 mb-6 animate-fade-in border-t border-slate-100 pt-6">
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Exact Diploma Title</label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. Diploma in Clinical Medicine"
+                                        className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 outline-none text-slate-700 transition-colors"
+                                        value={formData.diploma.field}
+                                        onChange={(e) => setFormData(f => ({ ...f, diploma: { ...f.diploma, field: e.target.value } }))}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Final GPA</label>
+                                    <input
+                                        type="number"
+                                        step="0.1"
+                                        min="0"
+                                        max="5"
+                                        placeholder="e.g. 3.5"
+                                        className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 outline-none text-slate-700 transition-colors"
+                                        value={formData.diploma.gpa}
+                                        onChange={(e) => setFormData(f => ({ ...f, diploma: { ...f.diploma, gpa: e.target.value } }))}
+                                    />
                                 </div>
                             </div>
                         )}
@@ -253,7 +298,11 @@ const GuidanceWizard = () => {
                             <span className="text-xs text-slate-400">Step 1 of {STEPS.length}</span>
                             <button
                                 onClick={advance}
-                                disabled={!formData.combination}
+                                disabled={
+                                    !formData.pathway ||
+                                    (formData.pathway === 'ACSEE' && !formData.acsee.combination) ||
+                                    (formData.pathway === 'DIPLOMA' && (!formData.diploma.field || !formData.diploma.gpa))
+                                }
                                 className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-accent text-white font-semibold text-sm hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                             >
                                 Continue <ArrowRight size={16} />
@@ -383,7 +432,7 @@ const GuidanceWizard = () => {
 
                                 <div className="grid md:grid-cols-2 gap-5">
                                     {matches.map((prog, i) => (
-                                        <CourseCard key={prog.id || i} programme={prog} />
+                                        <CourseCard key={prog.id || i} programme={prog} academicProfile={formData} />
                                     ))}
                                 </div>
 
