@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
@@ -6,12 +6,14 @@ import CourseCard from '../../components/courses/CourseCard';
 import FilterSidebar from '../../components/courses/FilterSidebar';
 import { Search, Filter, Loader2, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { trackTelemetry } from '../../utils/telemetry';
+import { useLanguage } from '../../context/LanguageContext';
 
 
 const CourseBrowser = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [programmes, setProgrammes] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { t } = useLanguage();
 
     // State
     const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
@@ -52,22 +54,20 @@ const CourseBrowser = () => {
             if (filters.award_level) params.append('award_level', filters.award_level);
             if (filters.study_mode) params.append('study_mode', filters.study_mode);
 
-            // Update URL without reloading (optional but good for UX)
             setSearchParams(params);
 
             const response = await fetch(`/api/programmes/?${params.toString()}`);
             const data = await response.json();
 
-            // Handle Paginated Response
             if (data.results) {
                 setProgrammes(data.results);
                 setTotalCount(data.count);
-                setTotalPages(Math.ceil(data.count / 10)); // Assuming PAGE_SIZE = 10
-                
-                trackTelemetry('search', { 
-                    query: searchTerm, 
-                    filters: filters, 
-                    results_count: data.count 
+                setTotalPages(Math.ceil(data.count / 10));
+
+                trackTelemetry('search', {
+                    query: searchTerm,
+                    filters: filters,
+                    results_count: data.count
                 });
             } else {
                 setProgrammes([]);
@@ -96,9 +96,9 @@ const CourseBrowser = () => {
             <div className="bg-white border-b border-slate-200 py-8 sticky top-0 z-10 shadow-sm">
                 <div className="container mx-auto px-6">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
-                        <h1 className="text-3xl font-display font-bold text-slate-900">Browse Courses</h1>
+                        <h1 className="text-3xl font-display font-bold text-slate-900">{t('courseBrowser.title')}</h1>
                         <span className="text-slate-500 text-sm font-medium">
-                            {totalCount} programmes found
+                            {totalCount} {t('courseBrowser.programmesFound')}
                         </span>
                     </div>
 
@@ -107,7 +107,7 @@ const CourseBrowser = () => {
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                             <input
                                 type="text"
-                                placeholder="Search programmes, universities, keywords..."
+                                placeholder={t('courseBrowser.searchPlaceholder')}
                                 className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none transition-all"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -143,7 +143,7 @@ const CourseBrowser = () => {
                         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm md:hidden" onClick={() => setShowMobileFilters(false)}>
                             <div className="absolute right-0 top-0 bottom-0 w-80 bg-white p-6 overflow-y-auto" onClick={e => e.stopPropagation()}>
                                 <div className="flex justify-between items-center mb-6">
-                                    <h3 className="text-lg font-bold">Filters</h3>
+                                    <h3 className="text-lg font-bold">{t('courseBrowser.filters')}</h3>
                                     <button onClick={() => setShowMobileFilters(false)}>
                                         <X size={24} />
                                     </button>
@@ -162,7 +162,7 @@ const CourseBrowser = () => {
                         {loading && programmes.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-20">
                                 <Loader2 className="animate-spin text-accent mb-4" size={40} />
-                                <p className="text-slate-500">Loading programmes...</p>
+                                <p className="text-slate-500">{t('courseBrowser.loading')}</p>
                             </div>
                         ) : (
                             <>
@@ -177,13 +177,13 @@ const CourseBrowser = () => {
                                         <div className="mx-auto w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                                             <Search className="text-slate-400" size={24} />
                                         </div>
-                                        <h3 className="text-lg font-bold text-slate-900 mb-2">No courses found</h3>
-                                        <p className="text-slate-500 mb-6">Try adjusting your search or filters to find what you're looking for.</p>
+                                        <h3 className="text-lg font-bold text-slate-900 mb-2">{t('courseBrowser.noCoursesTitle')}</h3>
+                                        <p className="text-slate-500 mb-6">{t('courseBrowser.noCoursesSub')}</p>
                                         <button
                                             onClick={handleClearFilters}
                                             className="text-accent font-medium hover:underline"
                                         >
-                                            Clear all filters
+                                            {t('courseBrowser.clearAllFilters')}
                                         </button>
                                     </div>
                                 )}
@@ -200,7 +200,7 @@ const CourseBrowser = () => {
                                         </button>
 
                                         <span className="text-sm font-medium text-slate-600 px-4">
-                                            Page {page} of {totalPages}
+                                            {t('courseBrowser.page')} {page} {t('courseBrowser.of')} {totalPages}
                                         </span>
 
                                         <button

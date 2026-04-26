@@ -4,10 +4,9 @@ import Footer from '../../components/Footer';
 import CourseCard from '../../components/courses/CourseCard';
 import { ArrowRight, ArrowLeft, Loader2, CheckCircle, Sparkles } from 'lucide-react';
 import { trackTelemetry } from '../../utils/telemetry';
+import { useLanguage } from '../../context/LanguageContext';
 
-// ─── Data (from claude branch) ────────────────────────────────────────────────
-
-const STEPS = ['Academic', 'Interests', 'Working style', 'Results'];
+// ─── Static Data ───────────────────────────────────────────────────────────────
 
 const COMBINATIONS = [
     { value: 'PCM', label: 'PCM — Physics, Chemistry, Mathematics' },
@@ -47,46 +46,47 @@ const COMBINATION_SUBJECTS = {
     KEC: ['Kiswahili', 'English', 'Chinese'],
 };
 
-const PERSONALITY_QUESTIONS = [
+// Personality question keys — labels/subs come from translations
+const PERSONALITY_QUESTION_KEYS = [
     {
         key: 'environment',
-        question: 'When you imagine your dream job, where are you mostly spending your day?',
+        tKey: 'wizard.q1',
         options: [
-            { value: 'A', label: 'Smart office', sub: 'Computer, documents, analysis.' },
-            { value: 'B', label: 'Out in the field', sub: 'Construction, farm, nature.' },
-            { value: 'C', label: 'Hospital or clinic', sub: 'Helping patients directly.' },
-            { value: 'D', label: 'On the move', sub: 'Meeting groups, running a business.' },
+            { value: 'A', tLabel: 'wizard.q1.A.label', tSub: 'wizard.q1.A.sub' },
+            { value: 'B', tLabel: 'wizard.q1.B.label', tSub: 'wizard.q1.B.sub' },
+            { value: 'C', tLabel: 'wizard.q1.C.label', tSub: 'wizard.q1.C.sub' },
+            { value: 'D', tLabel: 'wizard.q1.D.label', tSub: 'wizard.q1.D.sub' },
         ],
     },
     {
         key: 'activity',
-        question: 'At school, which activity do you actually enjoy most?',
+        tKey: 'wizard.q2',
         options: [
-            { value: 'A', label: 'Numbers & logic', sub: 'Calculating, exact answers.' },
-            { value: 'B', label: 'Writing & debate', sub: 'Essays, presenting ideas.' },
-            { value: 'C', label: 'Lab & hands-on', sub: 'Experiments, fixing things.' },
-            { value: 'D', label: 'Helping others', sub: 'Organising groups, counselling.' },
+            { value: 'A', tLabel: 'wizard.q2.A.label', tSub: 'wizard.q2.A.sub' },
+            { value: 'B', tLabel: 'wizard.q2.B.label', tSub: 'wizard.q2.B.sub' },
+            { value: 'C', tLabel: 'wizard.q2.C.label', tSub: 'wizard.q2.C.sub' },
+            { value: 'D', tLabel: 'wizard.q2.D.label', tSub: 'wizard.q2.D.sub' },
         ],
     },
     {
         key: 'impact',
-        question: 'If you became rich, what would you do for your hometown first?',
+        tKey: 'wizard.q3',
         options: [
-            { value: 'A', label: 'Free hospital', sub: 'Modern hospital & ambulances.' },
-            { value: 'B', label: 'Factory & jobs', sub: 'Employs thousands of youth.' },
-            { value: 'C', label: 'Tech app', sub: 'Clever app solving a deep problem.' },
-            { value: 'D', label: 'Big farm', sub: 'Cheap, quality food for all.' },
-            { value: 'E', label: 'NGO & rights', sub: 'Fight for fair laws.' },
+            { value: 'A', tLabel: 'wizard.q3.A.label', tSub: 'wizard.q3.A.sub' },
+            { value: 'B', tLabel: 'wizard.q3.B.label', tSub: 'wizard.q3.B.sub' },
+            { value: 'C', tLabel: 'wizard.q3.C.label', tSub: 'wizard.q3.C.sub' },
+            { value: 'D', tLabel: 'wizard.q3.D.label', tSub: 'wizard.q3.D.sub' },
+            { value: 'E', tLabel: 'wizard.q3.E.label', tSub: 'wizard.q3.E.sub' },
         ],
     },
     {
         key: 'role',
-        question: 'In a difficult group project, what is your natural role?',
+        tKey: 'wizard.q4',
         options: [
-            { value: 'A', label: 'The Planner', sub: 'Divides work, makes schedules.' },
-            { value: 'B', label: 'The Researcher', sub: 'Finds the facts & evidence.' },
-            { value: 'C', label: 'The Builder', sub: 'Builds the final product.' },
-            { value: 'D', label: 'The Speaker', sub: 'Confidently presents to everyone.' },
+            { value: 'A', tLabel: 'wizard.q4.A.label', tSub: 'wizard.q4.A.sub' },
+            { value: 'B', tLabel: 'wizard.q4.B.label', tSub: 'wizard.q4.B.sub' },
+            { value: 'C', tLabel: 'wizard.q4.C.label', tSub: 'wizard.q4.C.sub' },
+            { value: 'D', tLabel: 'wizard.q4.D.label', tSub: 'wizard.q4.D.sub' },
         ],
     },
 ];
@@ -102,6 +102,7 @@ const GuidanceWizard = () => {
     const [synthesis, setSynthesis] = useState('');
     const [isSendingEmail, setIsSendingEmail] = useState(false);
     const [emailAck, setEmailAck] = useState('');
+    const { t } = useLanguage();
 
     const [formData, setFormData] = useState({
         pathway: '',
@@ -112,6 +113,13 @@ const GuidanceWizard = () => {
         captureEmail: '',
     });
 
+    const STEPS = [
+        t('wizard.stepAcademic'),
+        t('wizard.stepInterests'),
+        t('wizard.stepWorkingStyle'),
+        t('wizard.stepResults'),
+    ];
+
     const advance = () => setStep(s => s + 1);
 
     const back = () => {
@@ -120,15 +128,13 @@ const GuidanceWizard = () => {
         if (step === 3) setPersonalityQ(0);
     };
 
-    // Auto-advance through personality questions on selection
     const handlePersonalitySelect = (key, value) => {
         const updated = { ...formData.personality, [key]: value };
         setFormData(f => ({ ...f, personality: updated }));
 
-        if (personalityQ < PERSONALITY_QUESTIONS.length - 1) {
+        if (personalityQ < PERSONALITY_QUESTION_KEYS.length - 1) {
             setTimeout(() => setPersonalityQ(q => q + 1), 220);
         } else {
-            // Last question — auto-submit
             setTimeout(() => findMatches({ ...formData, personality: updated }), 300);
         }
     };
@@ -149,32 +155,30 @@ const GuidanceWizard = () => {
             });
             const json = await res.json();
             if (!res.ok) throw new Error(json.error || 'Failed');
-            
-            // Build heavily verbose human-readable logs
+
             const comboLabel = data.pathway === 'ACSEE' ? (COMBINATIONS.find(c => c.value === data.acsee.combination)?.label || data.acsee.combination) : data.diploma.field;
             let psychoLogs = {};
             for (const key of Object.keys(data.personality)) {
-                const qObj = PERSONALITY_QUESTIONS.find(q => q.key === key);
+                const qObj = PERSONALITY_QUESTION_KEYS.find(q => q.key === key);
                 if (qObj) {
                     const option = qObj.options.find(o => o.value === data.personality[key]);
                     if (option) {
-                         psychoLogs[qObj.question] = `${option.label} - ${option.sub}`;
+                        psychoLogs[t(qObj.tKey)] = `${t(option.tLabel)} - ${t(option.tSub)}`;
                     }
                 }
             }
-            
-            trackTelemetry('guidance_conversion', { 
-                pathway: data.pathway, 
+
+            trackTelemetry('guidance_conversion', {
+                pathway: data.pathway,
                 academic_inputs: {
                     background: data.pathway,
                     combination: comboLabel,
                     acsee_grades: data.acsee.grades,
                     diploma_gpa: data.diploma.gpa
-                }, 
-                psychometric_inputs: psychoLogs, 
+                },
+                psychometric_inputs: psychoLogs,
                 ai_synthesis: json.ai_synthesis || '',
                 ai_recommendations: Array.isArray(json.matches) ? json.matches.map(m => {
-                    // Detect if this is an Agentic Grouped Cluster
                     if (m.offered_at && m.offered_at.length > 0) {
                         return {
                             programme_name: m.generic_name || m.name,
@@ -186,7 +190,6 @@ const GuidanceWizard = () => {
                             }))
                         };
                     }
-                    // Flat fallback route
                     return {
                         programme_id: m.id,
                         programme_name: m.generic_name || m.name,
@@ -196,7 +199,7 @@ const GuidanceWizard = () => {
                 }) : [],
                 converted_to_lead: false
             });
-            
+
             if (Array.isArray(json.matches)) { setMatches(json.matches); setSynthesis(json.ai_synthesis || ''); }
             else if (Array.isArray(json)) { setMatches(json); }
             else setMatches([]);
@@ -207,8 +210,7 @@ const GuidanceWizard = () => {
         }
     };
 
-    const subjects = formData.pathway === 'ACSEE' ? (COMBINATION_SUBJECTS[formData.acsee.combination] || []) : [];
-    const currentQ = PERSONALITY_QUESTIONS[personalityQ];
+    const currentQ = PERSONALITY_QUESTION_KEYS[personalityQ];
     const activeGroup = step === 1 ? 0 : step === 2 ? 1 : step === 3 ? 2 : 3;
 
     return (
@@ -220,7 +222,7 @@ const GuidanceWizard = () => {
                 <div className="border-b border-slate-200 bg-white">
                     <div className="container mx-auto px-6 py-5 max-w-lg">
                         <div className="flex items-center">
-                            {STEPS.slice(0, -1).concat('Results').map((g, i) => {
+                            {STEPS.map((g, i) => {
                                 const done = activeGroup > i;
                                 const active = activeGroup === i;
                                 return (
@@ -256,8 +258,8 @@ const GuidanceWizard = () => {
                 {step === 1 && (
                     <div className="animate-fade-in">
                         <QuizHeader
-                            title="What is your academic background?"
-                            sub="We'll evaluate your qualifications securely on-the-fly."
+                            title={t('wizard.step1Title')}
+                            sub={t('wizard.step1Sub')}
                         />
 
                         <div className="grid grid-cols-2 gap-4 mb-6">
@@ -265,28 +267,28 @@ const GuidanceWizard = () => {
                                 onClick={() => setFormData(f => ({ ...f, pathway: 'ACSEE' }))}
                                 className={`p-4 rounded-xl border transition-all text-left ${formData.pathway === 'ACSEE' ? 'border-accent bg-accent/5' : 'border-slate-200 hover:border-slate-300'}`}
                             >
-                                <h4 className={`font-bold mb-1 ${formData.pathway === 'ACSEE' ? 'text-accent' : 'text-slate-900'}`}>Form 6 Graduate</h4>
-                                <p className="text-xs text-slate-500">I have A-Level principle passes</p>
+                                <h4 className={`font-bold mb-1 ${formData.pathway === 'ACSEE' ? 'text-accent' : 'text-slate-900'}`}>{t('wizard.form6Title')}</h4>
+                                <p className="text-xs text-slate-500">{t('wizard.form6Sub')}</p>
                             </button>
                             <button
                                 onClick={() => setFormData(f => ({ ...f, pathway: 'DIPLOMA' }))}
                                 className={`p-4 rounded-xl border transition-all text-left ${formData.pathway === 'DIPLOMA' ? 'border-accent bg-accent/5' : 'border-slate-200 hover:border-slate-300'}`}
                             >
-                                <h4 className={`font-bold mb-1 ${formData.pathway === 'DIPLOMA' ? 'text-accent' : 'text-slate-900'}`}>Diploma Graduate</h4>
-                                <p className="text-xs text-slate-500">I have an Ordinary Diploma</p>
+                                <h4 className={`font-bold mb-1 ${formData.pathway === 'DIPLOMA' ? 'text-accent' : 'text-slate-900'}`}>{t('wizard.diplomaTitle')}</h4>
+                                <p className="text-xs text-slate-500">{t('wizard.diplomaSub')}</p>
                             </button>
                         </div>
 
                         {formData.pathway === 'ACSEE' && (
                             <div className="space-y-5 mb-6 animate-fade-in border-t border-slate-100 pt-6">
                                 <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Subject Combination</label>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">{t('wizard.subjectCombination')}</label>
                                     <select
                                         className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 outline-none text-slate-700 transition-colors"
                                         value={formData.acsee.combination}
                                         onChange={(e) => setFormData(f => ({ ...f, acsee: { combination: e.target.value, grades: {} } }))}
                                     >
-                                        <option value="">Select your combination</option>
+                                        <option value="">{t('wizard.selectCombination')}</option>
                                         {COMBINATIONS.map(c => (
                                             <option key={c.value} value={c.value}>{c.label}</option>
                                         ))}
@@ -294,7 +296,7 @@ const GuidanceWizard = () => {
                                 </div>
                                 {COMBINATION_SUBJECTS[formData.acsee.combination]?.length > 0 && (
                                     <div className="animate-fade-in bg-white rounded-xl border border-slate-200 p-5">
-                                        <p className="text-sm font-semibold text-slate-700 mb-4">Your grades</p>
+                                        <p className="text-sm font-semibold text-slate-700 mb-4">{t('wizard.yourGrades')}</p>
                                         <div className="grid grid-cols-3 gap-4">
                                             {COMBINATION_SUBJECTS[formData.acsee.combination].map(sub => (
                                                 <div key={sub}>
@@ -304,7 +306,7 @@ const GuidanceWizard = () => {
                                                         value={formData.acsee.grades[sub] || ''}
                                                         onChange={e => setFormData(f => ({ ...f, acsee: { ...f.acsee, grades: { ...f.acsee.grades, [sub]: e.target.value } } }))}
                                                     >
-                                                        <option value="">Grade</option>
+                                                        <option value="">{t('wizard.grade')}</option>
                                                         {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
                                                     </select>
                                                 </div>
@@ -318,23 +320,23 @@ const GuidanceWizard = () => {
                         {formData.pathway === 'DIPLOMA' && (
                             <div className="space-y-4 mb-6 animate-fade-in border-t border-slate-100 pt-6">
                                 <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Exact Diploma Title</label>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">{t('wizard.diplomaFieldLabel')}</label>
                                     <input
                                         type="text"
-                                        placeholder="e.g. Diploma in Clinical Medicine"
+                                        placeholder={t('wizard.diplomaFieldPlaceholder')}
                                         className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 outline-none text-slate-700 transition-colors"
                                         value={formData.diploma.field}
                                         onChange={(e) => setFormData(f => ({ ...f, diploma: { ...f.diploma, field: e.target.value } }))}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Final GPA</label>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">{t('wizard.gpaLabel')}</label>
                                     <input
                                         type="number"
                                         step="0.1"
                                         min="0"
                                         max="5"
-                                        placeholder="e.g. 3.5"
+                                        placeholder={t('wizard.gpaPlaceholder')}
                                         className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 outline-none text-slate-700 transition-colors"
                                         value={formData.diploma.gpa}
                                         onChange={(e) => setFormData(f => ({ ...f, diploma: { ...f.diploma, gpa: e.target.value } }))}
@@ -344,7 +346,7 @@ const GuidanceWizard = () => {
                         )}
 
                         <div className="flex justify-between items-center">
-                            <span className="text-xs text-slate-400">Step 1 of {STEPS.length}</span>
+                            <span className="text-xs text-slate-400">{t('wizard.step')} 1 {t('wizard.of')} {STEPS.length}</span>
                             <button
                                 onClick={advance}
                                 disabled={
@@ -354,7 +356,7 @@ const GuidanceWizard = () => {
                                 }
                                 className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-accent text-white font-semibold text-sm hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                             >
-                                Continue <ArrowRight size={16} />
+                                {t('wizard.continue')} <ArrowRight size={16} />
                             </button>
                         </div>
                     </div>
@@ -364,30 +366,30 @@ const GuidanceWizard = () => {
                 {step === 2 && (
                     <div className="animate-fade-in">
                         <QuizHeader
-                            title="What are your interests and goals?"
-                            sub="The more detail you give, the better the AI can match you."
+                            title={t('wizard.step2Title')}
+                            sub={t('wizard.step2Sub')}
                         />
 
                         <textarea
                             autoFocus
                             className="w-full p-4 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none min-h-[160px] text-slate-700 resize-none text-sm leading-relaxed mb-6"
-                            placeholder="I enjoy solving math problems, building things, and working with computers. I dream of becoming an engineer one day..."
+                            placeholder={t('wizard.interestsPlaceholder')}
                             value={formData.interests}
                             onChange={e => setFormData(f => ({ ...f, interests: e.target.value }))}
                         />
 
                         <div className="flex justify-between items-center">
                             <button onClick={back} className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition-colors text-sm">
-                                <ArrowLeft size={15} /> Back
+                                <ArrowLeft size={15} /> {t('wizard.back')}
                             </button>
                             <div className="flex items-center gap-3">
-                                <span className="text-xs text-slate-400">Step 2 of {STEPS.length}</span>
+                                <span className="text-xs text-slate-400">{t('wizard.step')} 2 {t('wizard.of')} {STEPS.length}</span>
                                 <button
                                     onClick={advance}
                                     disabled={!formData.interests.trim()}
                                     className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-accent text-white font-semibold text-sm hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                                 >
-                                    Continue <ArrowRight size={16} />
+                                    {t('wizard.continue')} <ArrowRight size={16} />
                                 </button>
                             </div>
                         </div>
@@ -398,13 +400,13 @@ const GuidanceWizard = () => {
                 {step === 3 && (
                     <div className="animate-fade-in" key={personalityQ}>
                         <QuizHeader
-                            title={currentQ.question}
+                            title={t(currentQ.tKey)}
                             sub={null}
                         />
 
                         {/* Sub-step dots */}
                         <div className="flex gap-1.5 mb-8">
-                            {PERSONALITY_QUESTIONS.map((_, i) => (
+                            {PERSONALITY_QUESTION_KEYS.map((_, i) => (
                                 <div key={i} className={`h-1 rounded-full transition-all duration-300
                                     ${i < personalityQ + 1 ? 'bg-accent' : 'bg-slate-200'}
                                     ${i === personalityQ ? 'w-8' : 'w-4'}`}
@@ -423,18 +425,18 @@ const GuidanceWizard = () => {
                                             : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm'}`}
                                 >
                                     <h3 className={`font-semibold text-base mb-1 ${formData.personality[currentQ.key] === opt.value ? 'text-accent' : 'text-slate-900'}`}>
-                                        {opt.label}
+                                        {t(opt.tLabel)}
                                     </h3>
-                                    <p className="text-sm text-slate-500 leading-snug">{opt.sub}</p>
+                                    <p className="text-sm text-slate-500 leading-snug">{t(opt.tSub)}</p>
                                 </button>
                             ))}
                         </div>
 
                         <div className="flex justify-between items-center">
                             <button onClick={back} className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition-colors text-sm">
-                                <ArrowLeft size={15} /> Back
+                                <ArrowLeft size={15} /> {t('wizard.back')}
                             </button>
-                            <span className="text-xs text-slate-400">Step 3 of {STEPS.length}</span>
+                            <span className="text-xs text-slate-400">{t('wizard.step')} 3 {t('wizard.of')} {STEPS.length}</span>
                         </div>
                     </div>
                 )}
@@ -445,35 +447,35 @@ const GuidanceWizard = () => {
                         {loading ? (
                             <div className="text-center py-24">
                                 <Loader2 className="animate-spin text-accent mx-auto mb-5" size={44} />
-                                <h2 className="page-heading text-2xl font-bold text-slate-900 mb-2">Analysing your profile…</h2>
-                                <p className="text-slate-500">Matching you against every programme in our database.</p>
-                                <p className="text-slate-400 text-sm mt-1.5">This usually takes 10–15 seconds.</p>
+                                <h2 className="page-heading text-2xl font-bold text-slate-900 mb-2">{t('wizard.analysingTitle')}</h2>
+                                <p className="text-slate-500">{t('wizard.analysingDesc')}</p>
+                                <p className="text-slate-400 text-sm mt-1.5">{t('wizard.analysingTime')}</p>
                             </div>
                         ) : error ? (
                             <div className="text-center py-16">
                                 <div className="bg-red-50 text-red-600 p-6 rounded-2xl max-w-lg mx-auto mb-6">
-                                    <p className="font-bold mb-1">Something went wrong</p>
+                                    <p className="font-bold mb-1">{t('wizard.errorTitle')}</p>
                                     <p className="text-sm">{error}</p>
                                 </div>
                                 <button onClick={() => { setStep(3); setError(null); }}
                                     className="px-5 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition-colors text-sm">
-                                    Try again
+                                    {t('wizard.tryAgain')}
                                 </button>
                             </div>
                         ) : (
                             <div className="space-y-10">
                                 <div className="text-center">
                                     <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-warm-light text-amber-700 text-sm font-semibold mb-4">
-                                        <CheckCircle size={15} /> {matches.length} matches found
+                                        <CheckCircle size={15} /> {matches.length} {t('wizard.matchesFound')}
                                     </div>
-                                    <h2 className="page-heading text-3xl font-bold text-slate-900">Your Top Recommendations</h2>
+                                    <h2 className="page-heading text-3xl font-bold text-slate-900">{t('wizard.resultsTitle')}</h2>
 
                                     {synthesis && (
                                         <div className="mt-6 text-left p-6 bg-indigo-50 border border-indigo-100 rounded-2xl relative shadow-inner">
                                             <div className="absolute -top-3 -left-3 p-2 bg-indigo-600 rounded-lg text-white shadow-md">
                                                 <Sparkles size={16} />
                                             </div>
-                                            <strong className="block text-indigo-900 mb-2 text-xs uppercase tracking-wider">AI Profile Synthesis</strong>
+                                            <strong className="block text-indigo-900 mb-2 text-xs uppercase tracking-wider">{t('wizard.aiSynthesisLabel')}</strong>
                                             <p className="text-slate-700 text-base italic">"{synthesis}"</p>
                                         </div>
                                     )}
@@ -487,12 +489,12 @@ const GuidanceWizard = () => {
 
                                 {/* Email capture */}
                                 <div className="border-t border-slate-100 pt-8">
-                                    <h3 className="font-semibold text-slate-900 mb-1">Save your results</h3>
-                                    <p className="text-sm text-slate-500 mb-4">Enter your email and we'll send you a copy of these matches.</p>
+                                    <h3 className="font-semibold text-slate-900 mb-1">{t('wizard.saveResultsTitle')}</h3>
+                                    <p className="text-sm text-slate-500 mb-4">{t('wizard.saveResultsSub')}</p>
                                     <div className="flex gap-2 max-w-md">
                                         <input
                                             type="email"
-                                            placeholder="your@email.com"
+                                            placeholder={t('wizard.emailPlaceholder')}
                                             value={formData.captureEmail || ''}
                                             onChange={e => setFormData(f => ({ ...f, captureEmail: e.target.value }))}
                                             className="flex-1 px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-accent/20 text-sm"
@@ -517,9 +519,9 @@ const GuidanceWizard = () => {
                                                     });
                                                     const data = await res.json();
                                                     if (!res.ok) throw new Error(data.error || 'Failed');
-                                                    
+
                                                     trackTelemetry('guidance_conversion', { converted_to_lead: true });
-                                                    
+
                                                     const sentTo = formData.captureEmail;
                                                     setFormData(f => ({ ...f, captureEmail: '' }));
                                                     setEmailAck(`Sent to ${sentTo}`);
@@ -534,7 +536,7 @@ const GuidanceWizard = () => {
                                             className="px-5 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-slate-800 disabled:opacity-40 transition-colors text-sm whitespace-nowrap flex items-center gap-2"
                                         >
                                             {isSendingEmail ? <Loader2 className="animate-spin" size={15} /> : null}
-                                            Send
+                                            {t('wizard.send')}
                                         </button>
                                     </div>
                                     {emailAck && (
@@ -549,7 +551,7 @@ const GuidanceWizard = () => {
                                         onClick={() => { setStep(1); setMatches([]); setSynthesis(''); setPersonalityQ(0); setFormData({ pathway: '', acsee: { combination: '', grades: {} }, diploma: { field: '', gpa: '' }, interests: '', personality: { environment: '', activity: '', impact: '', role: '' }, captureEmail: '' }); }}
                                         className="text-sm text-slate-400 hover:text-primary transition-colors"
                                     >
-                                        Start over
+                                        {t('wizard.startOver')}
                                     </button>
                                 </div>
                             </div>

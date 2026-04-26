@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import { BookOpen, Clock, Award, School, ChevronDown, CheckCircle, ArrowLeft, ArrowRight, Loader2, Briefcase } from 'lucide-react';
+import { BookOpen, Clock, Award, School, ArrowLeft, ArrowRight, Loader2, Briefcase } from 'lucide-react';
 import { trackTelemetry } from '../../utils/telemetry';
+import { useLanguage } from '../../context/LanguageContext';
 
 const ProgrammeProfile = () => {
     const { id } = useParams();
     const [programme, setProgramme] = useState(null);
     const [loading, setLoading] = useState(true);
+    const { t } = useLanguage();
 
     useEffect(() => {
         const fetchProgramme = async () => {
@@ -17,13 +19,12 @@ const ProgrammeProfile = () => {
                 if (!res.ok) throw new Error("Failed to fetch");
                 const data = await res.json();
                 setProgramme(data);
-                
-                // Track Telemetry natively
-                trackTelemetry('page_view', { 
-                    entity_type: 'PROGRAMME', 
-                    entity_id: id 
+
+                trackTelemetry('page_view', {
+                    entity_type: 'PROGRAMME',
+                    entity_id: id
                 });
-                
+
             } catch (error) {
                 console.error(error);
             } finally {
@@ -44,8 +45,8 @@ const ProgrammeProfile = () => {
     if (!programme) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center flex-col">
-                <h2 className="text-xl font-bold mb-4">Programme not found</h2>
-                <Link to="/courses" className="text-accent underline">Back to Courses</Link>
+                <h2 className="text-xl font-bold mb-4">{t('progProfile.notFound')}</h2>
+                <Link to="/courses" className="text-accent underline">{t('progProfile.notFoundBack')}</Link>
             </div>
         );
     }
@@ -54,10 +55,8 @@ const ProgrammeProfile = () => {
     const structure = {};
     if (programme.courses) {
         programme.courses.forEach(course => {
-            // Use the database 'year' field directly
-            const year = course.year || Math.ceil(course.semester / 2); // Fallback for safety
+            const year = course.year || Math.ceil(course.semester / 2);
             if (!structure[year]) structure[year] = {};
-
             if (!structure[year][course.semester]) structure[year][course.semester] = [];
             structure[year][course.semester].push(course);
         });
@@ -71,7 +70,7 @@ const ProgrammeProfile = () => {
             <div className="bg-white border-b border-slate-200">
                 <div className="container mx-auto px-6 py-12 max-w-4xl">
                     <Link to="/courses" className="inline-flex items-center text-slate-500 hover:text-accent mb-6 transition-colors">
-                        <ArrowLeft size={16} className="mr-2" /> Back to Courses
+                        <ArrowLeft size={16} className="mr-2" /> {t('progProfile.backToCourses')}
                     </Link>
 
                     <div className="flex flex-col gap-2 mb-4">
@@ -90,7 +89,7 @@ const ProgrammeProfile = () => {
                                 <Award size={20} />
                             </div>
                             <div>
-                                <p className="text-xs text-slate-500 uppercase font-semibold">Award</p>
+                                <p className="text-xs text-slate-500 uppercase font-semibold">{t('progProfile.award')}</p>
                                 <p className="font-medium">{programme.award_level}</p>
                             </div>
                         </div>
@@ -100,8 +99,8 @@ const ProgrammeProfile = () => {
                                 <Clock size={20} />
                             </div>
                             <div>
-                                <p className="text-xs text-slate-500 uppercase font-semibold">Duration</p>
-                                <p className="font-medium">{programme.duration_months > 0 ? `${programme.duration_months} Months` : '--'}</p>
+                                <p className="text-xs text-slate-500 uppercase font-semibold">{t('progProfile.duration')}</p>
+                                <p className="font-medium">{programme.duration_months > 0 ? `${programme.duration_months} ${t('courseCard.months')}` : t('progProfile.naValue')}</p>
                             </div>
                         </div>
 
@@ -111,7 +110,7 @@ const ProgrammeProfile = () => {
                                     <BookOpen size={20} />
                                 </div>
                                 <div>
-                                    <p className="text-xs text-slate-500 uppercase font-semibold">Mode</p>
+                                    <p className="text-xs text-slate-500 uppercase font-semibold">{t('progProfile.mode')}</p>
                                     <p className="font-medium">{programme.study_mode}</p>
                                 </div>
                             </div>
@@ -127,7 +126,7 @@ const ProgrammeProfile = () => {
                     {programme.description && (
                         <section>
                             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                                Programme Overview
+                                {t('progProfile.overview')}
                             </h2>
                             <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
                                 <p>{programme.description}</p>
@@ -139,13 +138,13 @@ const ProgrammeProfile = () => {
                     {programme.admission_requirements && programme.admission_requirements.length > 0 && (
                         <section>
                             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                                Admission Requirements
+                                {t('progProfile.admissionReqs')}
                             </h2>
                             <div className="space-y-4">
                                 {programme.admission_requirements.map((req, idx) => (
                                     <div key={idx} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm border-l-4 border-l-amber-500">
                                         <h3 className="font-bold text-slate-800 uppercase tracking-wide text-xs mb-2">
-                                            {req.pathway === 'ACSEE' ? 'Form 6 (ACSEE) Pathway' : 'Ordinary Diploma Pathway'}
+                                            {req.pathway === 'ACSEE' ? t('progProfile.acseePathway') : t('progProfile.diplomaPathway')}
                                         </h3>
                                         <p className="text-slate-600 text-sm leading-relaxed">
                                             {req.description}
@@ -160,7 +159,7 @@ const ProgrammeProfile = () => {
                     {programme.career_outlooks && programme.career_outlooks.length > 0 && (
                         <section>
                             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 mt-4">
-                                Career Outlook
+                                {t('progProfile.careerOutlook')}
                             </h2>
                             <div className="grid md:grid-cols-2 gap-6">
                                 {programme.career_outlooks.map((career, idx) => (
@@ -183,7 +182,7 @@ const ProgrammeProfile = () => {
                     {/* Course Structure */}
                     <section>
                         <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                            Course Structure
+                            {t('progProfile.courseStructure')}
                         </h2>
 
                         <div className="space-y-8">
@@ -193,7 +192,7 @@ const ProgrammeProfile = () => {
                                         {/* Year Header */}
                                         <div className="flex items-center gap-4">
                                             <h3 className="text-xl font-bold text-slate-800 bg-white border border-slate-200 px-6 py-2 rounded-full inline-block shadow-sm">
-                                                Year {year}
+                                                {t('progProfile.year')} {year}
                                             </h3>
                                             <div className="h-px bg-slate-200 flex-1"></div>
                                         </div>
@@ -203,8 +202,8 @@ const ProgrammeProfile = () => {
                                             {Object.keys(structure[year]).sort((a, b) => a - b).map(sem => (
                                                 <div key={sem} className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                                                     <div className="bg-slate-50/50 px-5 py-4 border-b border-slate-100 font-bold text-slate-800 flex justify-between items-center">
-                                                        <span>Semester {sem}</span>
-                                                        <span className="px-2 py-1 bg-slate-100 text-slate-500 rounded text-xs font-medium">{structure[year][sem].length} Courses</span>
+                                                        <span>{t('progProfile.semester')} {sem}</span>
+                                                        <span className="px-2 py-1 bg-slate-100 text-slate-500 rounded text-xs font-medium">{structure[year][sem].length} {t('progProfile.courses')}</span>
                                                     </div>
                                                     <ul className="divide-y divide-slate-50">
                                                         {structure[year][sem].map(course => (
@@ -216,7 +215,7 @@ const ProgrammeProfile = () => {
                                                                     <div className="font-medium text-slate-700 group-hover:text-slate-900">{course.name}</div>
                                                                     <div className="text-xs text-slate-400 flex gap-2 mt-1">
                                                                         <span className="font-mono">{course.code}</span>
-                                                                        {course.credits > 0 && <span>• {course.credits} Credits</span>}
+                                                                        {course.credits > 0 && <span>• {course.credits} {t('courseCard.credits')}</span>}
                                                                     </div>
                                                                 </div>
                                                             </li>
@@ -229,17 +228,19 @@ const ProgrammeProfile = () => {
                                 ))
                             ) : (
                                 <div className="text-center py-12 bg-white rounded-xl border border-dashed border-slate-300">
-                                    <p className="text-slate-500">Course structure not available yet.</p>
+                                    <p className="text-slate-500">{t('progProfile.noStructure')}</p>
                                 </div>
                             )}
                         </div>
-                    </section>                    {/* CTAs / Interested Section (Moved to Bottom) */}
+                    </section>
+
+                    {/* CTAs */}
                     <section className="pt-8 border-t border-slate-200">
                         <div className="bg-slate-100 border border-slate-200 rounded-3xl p-8 md:p-12 text-center shadow-sm relative overflow-hidden">
                             <div className="relative z-10 max-w-2xl mx-auto">
-                                <h3 className="font-bold text-2xl md:text-3xl text-slate-900 mb-4">Interested in this programme?</h3>
+                                <h3 className="font-bold text-2xl md:text-3xl text-slate-900 mb-4">{t('progProfile.interestedTitle')}</h3>
                                 <p className="text-slate-600 text-lg mb-8">
-                                    Visit the university website for detailed admission requirements, fee structures, and application deadlines.
+                                    {t('progProfile.interestedDesc')}
                                 </p>
 
                                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -249,14 +250,14 @@ const ProgrammeProfile = () => {
                                         rel="noreferrer"
                                         className="inline-flex items-center justify-center px-8 py-4 bg-accent hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg"
                                     >
-                                        Visit Official Website
+                                        {t('progProfile.visitWebsite')}
                                         <ArrowRight size={18} className="ml-2" />
                                     </a>
                                     <Link
                                         to={`/universities?search=${programme.university_name}`}
                                         className="inline-flex items-center justify-center px-8 py-4 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-xl transition-all border border-slate-300 shadow-sm"
                                     >
-                                        View University Profile
+                                        {t('progProfile.viewUniProfile')}
                                     </Link>
                                 </div>
                             </div>
