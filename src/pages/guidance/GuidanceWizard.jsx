@@ -3,6 +3,7 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import CourseCard from '../../components/courses/CourseCard';
 import { ArrowRight, ArrowLeft, Loader2, CheckCircle, Sparkles } from 'lucide-react';
+import { trackTelemetry } from '../../utils/telemetry';
 
 // ─── Data (from claude branch) ────────────────────────────────────────────────
 
@@ -148,6 +149,54 @@ const GuidanceWizard = () => {
             });
             const json = await res.json();
             if (!res.ok) throw new Error(json.error || 'Failed');
+            
+            // Build heavily verbose human-readable logs
+            const comboLabel = data.pathway === 'ACSEE' ? (COMBINATIONS.find(c => c.value === data.acsee.combination)?.label || data.acsee.combination) : data.diploma.field;
+            let psychoLogs = {};
+            for (const key of Object.keys(data.personality)) {
+                const qObj = PERSONALITY_QUESTIONS.find(q => q.key === key);
+                if (qObj) {
+                    const option = qObj.options.find(o => o.value === data.personality[key]);
+                    if (option) {
+                         psychoLogs[qObj.question] = `${option.label} - ${option.sub}`;
+                    }
+                }
+            }
+            
+            trackTelemetry('guidance_conversion', { 
+                pathway: data.pathway, 
+                academic_inputs: {
+                    background: data.pathway,
+                    combination: comboLabel,
+                    acsee_grades: data.acsee.grades,
+                    diploma_gpa: data.diploma.gpa
+                }, 
+                psychometric_inputs: psychoLogs, 
+                ai_synthesis: json.ai_synthesis || '',
+                ai_recommendations: Array.isArray(json.matches) ? json.matches.map(m => {
+                    // Detect if this is an Agentic Grouped Cluster
+                    if (m.offered_at && m.offered_at.length > 0) {
+                        return {
+                            programme_name: m.generic_name || m.name,
+                            offered_at_count: m.offered_at.length,
+                            institutions: m.offered_at.map(offer => ({
+                                programme_id: offer.id,
+                                university_id: offer.university?.id || offer.university,
+                                university_name: offer.university?.name || offer.university_name || offer.university_short_name || 'Unknown University'
+                            }))
+                        };
+                    }
+                    // Flat fallback route
+                    return {
+                        programme_id: m.id,
+                        programme_name: m.generic_name || m.name,
+                        university_id: m.university?.id || m.university,
+                        university_name: m.university?.name || m.university_name || m.university_short_name || 'Unknown University'
+                    };
+                }) : [],
+                converted_to_lead: false
+            });
+            
             if (Array.isArray(json.matches)) { setMatches(json.matches); setSynthesis(json.ai_synthesis || ''); }
             else if (Array.isArray(json)) { setMatches(json); }
             else setMatches([]);
@@ -468,6 +517,9 @@ const GuidanceWizard = () => {
                                                     });
                                                     const data = await res.json();
                                                     if (!res.ok) throw new Error(data.error || 'Failed');
+                                                    
+                                                    trackTelemetry('guidance_conversion', { converted_to_lead: true });
+                                                    
                                                     const sentTo = formData.captureEmail;
                                                     setFormData(f => ({ ...f, captureEmail: '' }));
                                                     setEmailAck(`Sent to ${sentTo}`);
@@ -494,7 +546,7 @@ const GuidanceWizard = () => {
 
                                 <div className="text-center pb-4">
                                     <button
-                                        onClick={() => { setStep(1); setMatches([]); setSynthesis(''); setPersonalityQ(0); setFormData({ combination: '', grades: {}, interests: '', personality: { environment: '', activity: '', impact: '', role: '' }, captureEmail: '' }); }}
+                                        onClick={() => { setStep(1); setMatches([]); setSynthesis(''); setPersonalityQ(0); setFormData({ pathway: '', acsee: { combination: '', grades: {} }, diploma: { field: '', gpa: '' }, interests: '', personality: { environment: '', activity: '', impact: '', role: '' }, captureEmail: '' }); }}
                                         className="text-sm text-slate-400 hover:text-primary transition-colors"
                                     >
                                         Start over

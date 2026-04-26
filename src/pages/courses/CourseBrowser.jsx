@@ -5,6 +5,7 @@ import Footer from '../../components/Footer';
 import CourseCard from '../../components/courses/CourseCard';
 import FilterSidebar from '../../components/courses/FilterSidebar';
 import { Search, Filter, Loader2, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { trackTelemetry } from '../../utils/telemetry';
 
 
 const CourseBrowser = () => {
@@ -62,6 +63,12 @@ const CourseBrowser = () => {
                 setProgrammes(data.results);
                 setTotalCount(data.count);
                 setTotalPages(Math.ceil(data.count / 10)); // Assuming PAGE_SIZE = 10
+                
+                trackTelemetry('search', { 
+                    query: searchTerm, 
+                    filters: filters, 
+                    results_count: data.count 
+                });
             } else {
                 setProgrammes([]);
             }

@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { BookOpen, Clock, Award, School, ChevronDown, CheckCircle, ArrowLeft, ArrowRight, Loader2, Briefcase } from 'lucide-react';
+import { trackTelemetry } from '../../utils/telemetry';
 
 const ProgrammeProfile = () => {
     const { id } = useParams();
@@ -16,6 +17,13 @@ const ProgrammeProfile = () => {
                 if (!res.ok) throw new Error("Failed to fetch");
                 const data = await res.json();
                 setProgramme(data);
+                
+                // Track Telemetry natively
+                trackTelemetry('page_view', { 
+                    entity_type: 'PROGRAMME', 
+                    entity_id: id 
+                });
+                
             } catch (error) {
                 console.error(error);
             } finally {
