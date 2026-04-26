@@ -14,7 +14,7 @@ export const getTelemetrySessionId = () => {
   return sessionId;
 };
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 /**
  * Super lightweight tracking mechanism configured never to break UI if the backend fails.
