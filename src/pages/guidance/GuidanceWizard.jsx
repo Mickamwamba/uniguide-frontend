@@ -488,10 +488,10 @@ const GuidanceWizard = () => {
                                 </div>
 
                                 {/* Email capture */}
-                                <div className="border-t border-slate-100 pt-8">
+                                <div className="border-t border-slate-100 pt-8 flex flex-col items-center text-center">
                                     <h3 className="font-semibold text-slate-900 mb-1">{t('wizard.saveResultsTitle')}</h3>
-                                    <p className="text-sm text-slate-500 mb-4">{t('wizard.saveResultsSub')}</p>
-                                    <div className="flex gap-2 max-w-md">
+                                    <p className="text-sm text-slate-500 mb-6 max-w-md">{t('wizard.saveResultsSub')}</p>
+                                    <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
                                         <input
                                             type="email"
                                             placeholder={t('wizard.emailPlaceholder')}
@@ -504,17 +504,30 @@ const GuidanceWizard = () => {
                                             onClick={async () => {
                                                 setIsSendingEmail(true);
                                                 setEmailAck('');
+
+                                                // Build descriptive personality answers for the lead entry
+                                                const descriptivePersonality = {};
+                                                for (const key of Object.keys(formData.personality)) {
+                                                    const qObj = PERSONALITY_QUESTION_KEYS.find(q => q.key === key);
+                                                    if (qObj) {
+                                                        const option = qObj.options.find(o => o.value === formData.personality[key]);
+                                                        if (option) {
+                                                            descriptivePersonality[t(qObj.tKey)] = `${t(option.tLabel)} - ${t(option.tSub)}`;
+                                                        }
+                                                    }
+                                                }
+
                                                 try {
                                                     const res = await fetch('/api/capture-lead/', {
                                                         method: 'POST',
                                                         headers: { 'Content-Type': 'application/json' },
                                                         body: JSON.stringify({
                                                             email: formData.captureEmail,
-                                                            combination: formData.combination,
+                                                            combination: formData.acsee.combination || formData.diploma.field,
                                                             interests: formData.interests,
-                                                            personality: formData.personality,
-                                                            synthesis,
-                                                            matches: matches.map(m => m.generic_name).join(', '),
+                                                            personality_text: descriptivePersonality, // Full text for backend
+                                                            synthesis: synthesis, // Map to what backend expects
+                                                            matches: matches.map(m => m.generic_name || m.name).join(', '),
                                                         })
                                                     });
                                                     const data = await res.json();
@@ -524,7 +537,7 @@ const GuidanceWizard = () => {
 
                                                     const sentTo = formData.captureEmail;
                                                     setFormData(f => ({ ...f, captureEmail: '' }));
-                                                    setEmailAck(`Sent to ${sentTo}`);
+                                                    setEmailAck(`Awesome! We've added ${sentTo} to the list.`);
                                                     setTimeout(() => setEmailAck(''), 5000);
                                                 } catch (e) {
                                                     setEmailAck(`Error: ${e.message}`);
@@ -533,14 +546,14 @@ const GuidanceWizard = () => {
                                                     setIsSendingEmail(false);
                                                 }
                                             }}
-                                            className="px-5 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-slate-800 disabled:opacity-40 transition-colors text-sm whitespace-nowrap flex items-center gap-2"
+                                            className="px-6 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 disabled:opacity-40 transition-all text-sm whitespace-nowrap flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
                                         >
                                             {isSendingEmail ? <Loader2 className="animate-spin" size={15} /> : null}
                                             {t('wizard.send')}
                                         </button>
                                     </div>
                                     {emailAck && (
-                                        <p className={`mt-3 text-sm font-medium ${emailAck.startsWith('Error') ? 'text-red-600' : 'text-green-600'}`}>
+                                        <p className={`mt-4 text-sm font-semibold p-2 px-4 rounded-lg ${emailAck.startsWith('Error') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
                                             {emailAck}
                                         </p>
                                     )}

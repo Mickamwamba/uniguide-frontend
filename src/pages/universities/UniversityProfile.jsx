@@ -3,14 +3,16 @@ import { useParams, Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import CourseCard from '../../components/courses/CourseCard';
-import { MapPin, Mail, Globe, Award, BookOpen, Loader2, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
+import { MapPin, Mail, Globe, Award, BookOpen, Loader2, ArrowLeft, ArrowRight, Sparkles, Flag } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import ReportModal from '../../components/support/ReportModal';
 
 const UniversityProfile = () => {
     const { id } = useParams();
     const [university, setUniversity] = useState(null);
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [reportModalOpen, setReportModalOpen] = useState(false);
     const { t } = useLanguage();
 
     useEffect(() => {
@@ -205,6 +207,23 @@ const UniversityProfile = () => {
                     )}
                 </div>
             </div>
+
+            <div className="container mx-auto px-6 pb-12 flex justify-center">
+                <button 
+                    onClick={() => setReportModalOpen(true)}
+                    className="flex items-center gap-2 text-red-500 hover:text-red-600 font-semibold text-sm transition-colors group"
+                >
+                    <Flag size={14} className="group-hover:scale-110 transition-transform fill-current" />
+                    {t('report.btn')}
+                </button>
+            </div>
+
+            <ReportModal 
+                isOpen={reportModalOpen} 
+                onClose={() => setReportModalOpen(false)} 
+                entityUrl={window.location.href}
+            />
+
             <Footer />
         </div>
     );

@@ -2,14 +2,16 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import { BookOpen, Clock, Award, School, ArrowLeft, ArrowRight, Loader2, Briefcase } from 'lucide-react';
+import { BookOpen, Clock, Award, School, ArrowLeft, ArrowRight, Loader2, Briefcase, Flag } from 'lucide-react';
 import { trackTelemetry } from '../../utils/telemetry';
 import { useLanguage } from '../../context/LanguageContext';
+import ReportModal from '../../components/support/ReportModal';
 
 const ProgrammeProfile = () => {
     const { id } = useParams();
     const [programme, setProgramme] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [reportModalOpen, setReportModalOpen] = useState(false);
     const { t } = useLanguage();
 
     useEffect(() => {
@@ -245,7 +247,7 @@ const ProgrammeProfile = () => {
 
                                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                                     <a
-                                        href={`http://${programme.university_name.toLowerCase().replace(/\s+/g, '')}.ac.tz`}
+                                        href={programme.university_website || `https://www.google.com/search?q=${encodeURIComponent(programme.university_name + " official website")}`}
                                         target="_blank"
                                         rel="noreferrer"
                                         className="inline-flex items-center justify-center px-8 py-4 bg-accent hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg"
@@ -265,6 +267,23 @@ const ProgrammeProfile = () => {
                     </section>
                 </div>
             </div>
+
+            <div className="container mx-auto px-6 pb-12 max-w-4xl flex justify-center">
+                <button 
+                    onClick={() => setReportModalOpen(true)}
+                    className="flex items-center gap-2 text-red-500 hover:text-red-600 font-semibold text-sm transition-colors group"
+                >
+                    <Flag size={14} className="group-hover:scale-110 transition-transform fill-current" />
+                    {t('report.btn')}
+                </button>
+            </div>
+
+            <ReportModal 
+                isOpen={reportModalOpen} 
+                onClose={() => setReportModalOpen(false)} 
+                entityUrl={window.location.href}
+            />
+
             <Footer />
         </div>
     );

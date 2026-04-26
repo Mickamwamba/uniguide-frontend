@@ -32,9 +32,9 @@ const Footer = () => {
                     {/* Contact */}
                     <div className="flex flex-col items-center md:items-start gap-2 text-sm text-slate-600">
                         <span className="font-semibold text-slate-800 mb-1">{t('footer.contact')}</span>
-                        <a href="mailto:hello@unipathfinder.co.tz" className="flex items-center gap-1.5 hover:text-accent transition-colors">
-                            <Mail size={14} /> hello@unipathfinder.co.tz
-                        </a>
+                        <Link to="/contact" className="hover:text-accent transition-colors">
+                            {t('footer.contactUs')}
+                        </Link>
                     </div>
                 </div>
 
