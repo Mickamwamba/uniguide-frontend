@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { X, Check } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Check } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 const FilterSidebar = ({ filters, setFilters, onClear, className = "" }) => {
     const [universities, setUniversities] = useState([]);
+    const { t } = useLanguage();
 
-    // Award Levels (could be fetched, but standard enough to hardcode for now)
     const awardLevels = [
         "Bachelor",
         "Diploma",
@@ -14,7 +15,6 @@ const FilterSidebar = ({ filters, setFilters, onClear, className = "" }) => {
         "Doctorate"
     ];
 
-    // Study Modes
     const studyModes = [
         "Full Time",
         "Part Time",
@@ -28,10 +28,8 @@ const FilterSidebar = ({ filters, setFilters, onClear, className = "" }) => {
 
     const fetchUniversities = async () => {
         try {
-            // Fetch all universities for the dropdown
             const response = await fetch('/api/universities/');
             const data = await response.json();
-            // Since we disabled pagination for universities, data is the array itself
             setUniversities(data);
         } catch (err) {
             console.error("Failed to load universities", err);
@@ -49,24 +47,24 @@ const FilterSidebar = ({ filters, setFilters, onClear, className = "" }) => {
         <div className={`space-y-8 ${className}`}>
             {/* Header */}
             <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-slate-900">Filters</h3>
+                <h3 className="text-lg font-bold text-slate-900">{t('filter.title')}</h3>
                 <button
                     onClick={onClear}
                     className="text-sm text-slate-500 hover:text-accent underline decoration-slate-300 underline-offset-4"
                 >
-                    Clear All
+                    {t('filter.clearAll')}
                 </button>
             </div>
 
             {/* University Filter */}
             <div className="space-y-3">
-                <label className="text-sm font-semibold text-slate-900 uppercase tracking-wider">University</label>
+                <label className="text-sm font-semibold text-slate-900 uppercase tracking-wider">{t('filter.university')}</label>
                 <select
                     className="w-full p-3 rounded-lg border border-slate-200 bg-white text-slate-700 focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all"
                     value={filters.university || ""}
                     onChange={(e) => handleFilterChange('university', e.target.value)}
                 >
-                    <option value="">All Universities</option>
+                    <option value="">{t('filter.allUniversities')}</option>
                     {universities.map(uni => (
                         <option key={uni.id} value={uni.id}>
                             {uni.short_name ? `${uni.name} (${uni.short_name})` : uni.name}
@@ -77,7 +75,7 @@ const FilterSidebar = ({ filters, setFilters, onClear, className = "" }) => {
 
             {/* Award Level Filter */}
             <div className="space-y-3">
-                <label className="text-sm font-semibold text-slate-900 uppercase tracking-wider">Award Level</label>
+                <label className="text-sm font-semibold text-slate-900 uppercase tracking-wider">{t('filter.awardLevel')}</label>
                 <div className="space-y-2">
                     {awardLevels.map(level => (
                         <label key={level} className="flex items-center gap-3 cursor-pointer group">
@@ -99,7 +97,7 @@ const FilterSidebar = ({ filters, setFilters, onClear, className = "" }) => {
 
             {/* Study Mode Filter */}
             <div className="space-y-3">
-                <label className="text-sm font-semibold text-slate-900 uppercase tracking-wider">Study Mode</label>
+                <label className="text-sm font-semibold text-slate-900 uppercase tracking-wider">{t('filter.studyMode')}</label>
                 <div className="space-y-2">
                     {studyModes.map(mode => (
                         <label key={mode} className="flex items-center gap-3 cursor-pointer group">

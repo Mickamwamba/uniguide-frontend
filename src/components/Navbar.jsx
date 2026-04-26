@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, Search, Sparkles, Menu, X } from 'lucide-react';
+import { BookOpen, Search, Menu, X } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 const Navbar = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const navigate = useNavigate();
+    const { lang, setLang, t } = useLanguage();
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -30,9 +32,9 @@ const Navbar = () => {
 
                 {/* Desktop nav links */}
                 <div className="hidden md:flex items-center gap-8 text-slate-600 font-medium text-sm">
-                    <Link to="/universities" className="hover:text-accent transition-colors">Universities</Link>
-                    <Link to="/courses" className="hover:text-accent transition-colors">Courses</Link>
-                    <Link to="/guidance" className="hover:text-accent transition-colors">Find My Course</Link>
+                    <Link to="/universities" className="hover:text-accent transition-colors">{t('nav.universities')}</Link>
+                    <Link to="/courses" className="hover:text-accent transition-colors">{t('nav.courses')}</Link>
+                    <Link to="/guidance" className="hover:text-accent transition-colors">{t('nav.findMyCourse')}</Link>
                 </div>
 
                 {/* Desktop actions */}
@@ -44,7 +46,7 @@ const Navbar = () => {
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search courses..."
+                                placeholder={t('nav.searchPlaceholder')}
                                 className="px-3 py-1.5 rounded-full border border-slate-200 bg-white text-sm outline-none focus:ring-2 focus:ring-accent/20 w-48"
                             />
                             <button type="button" onClick={() => setSearchOpen(false)} className="text-slate-400 hover:text-slate-600">
@@ -57,27 +59,44 @@ const Navbar = () => {
                             className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors text-sm font-medium"
                         >
                             <Search size={16} />
-                            <span>Search</span>
+                            <span>{t('nav.search')}</span>
                         </button>
                     )}
-                    {/* <Link
-                        to="/advisor"
-                        className="flex items-center gap-2 px-4 py-2 rounded-full bg-accent hover:bg-accent-hover text-white transition-all shadow-lg shadow-indigo-500/20 text-sm font-medium"
-                    >
-                        <Sparkles size={16} />
-                        <span>AI Guide</span>
-                    </Link> */}
+
+                    {/* Language Toggle */}
+                    <div className="flex items-center rounded-full border border-slate-200 bg-slate-100 p-0.5 text-xs font-semibold">
+                        <button
+                            onClick={() => setLang('en')}
+                            className={`px-3 py-1.5 rounded-full transition-all ${lang === 'en' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            EN
+                        </button>
+                        <button
+                            onClick={() => setLang('sw')}
+                            className={`px-3 py-1.5 rounded-full transition-all ${lang === 'sw' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            SW
+                        </button>
+                    </div>
                 </div>
 
-                {/* Mobile: AI Guide + hamburger */}
+                {/* Mobile: language toggle + hamburger */}
                 <div className="flex md:hidden items-center gap-2">
-                    {/* <Link
-                        to="/advisor"
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent text-white text-xs font-medium shadow-md shadow-indigo-500/20"
-                    >
-                        <Sparkles size={13} />
-                        AI Guide
-                    </Link> */}
+                    {/* Mobile Language Toggle */}
+                    <div className="flex items-center rounded-full border border-slate-200 bg-slate-100 p-0.5 text-xs font-semibold">
+                        <button
+                            onClick={() => setLang('en')}
+                            className={`px-2.5 py-1 rounded-full transition-all ${lang === 'en' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}
+                        >
+                            EN
+                        </button>
+                        <button
+                            onClick={() => setLang('sw')}
+                            className={`px-2.5 py-1 rounded-full transition-all ${lang === 'sw' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}
+                        >
+                            SW
+                        </button>
+                    </div>
                     <button
                         onClick={() => setMobileOpen(!mobileOpen)}
                         className="p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
@@ -99,16 +118,15 @@ const Navbar = () => {
                                     type="text"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="Search courses..."
+                                    placeholder={t('nav.searchPlaceholder')}
                                     className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm outline-none focus:ring-2 focus:ring-accent/20"
                                 />
                             </div>
-                            <button type="submit" className="px-3 py-2 bg-accent text-white rounded-xl text-sm font-medium">Go</button>
+                            <button type="submit" className="px-3 py-2 bg-accent text-white rounded-xl text-sm font-medium">{t('nav.searchGo')}</button>
                         </form>
-                        <MobileNavLink to="/universities" onClick={() => setMobileOpen(false)}>Universities</MobileNavLink>
-                        <MobileNavLink to="/courses" onClick={() => setMobileOpen(false)}>Courses</MobileNavLink>
-                        <MobileNavLink to="/guidance" onClick={() => setMobileOpen(false)}>Find My Course</MobileNavLink>
-                        {/* <MobileNavLink to="/advisor" onClick={() => setMobileOpen(false)}>AI Guide</MobileNavLink> */}
+                        <MobileNavLink to="/universities" onClick={() => setMobileOpen(false)}>{t('nav.universities')}</MobileNavLink>
+                        <MobileNavLink to="/courses" onClick={() => setMobileOpen(false)}>{t('nav.courses')}</MobileNavLink>
+                        <MobileNavLink to="/guidance" onClick={() => setMobileOpen(false)}>{t('nav.findMyCourse')}</MobileNavLink>
                     </div>
                 </div>
             )}

@@ -1,29 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import CourseCard from '../../components/courses/CourseCard';
-import { MapPin, Mail, Globe, Award, BookOpen, Loader2, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
+import { MapPin, Mail, Globe, Award, BookOpen, Loader2, ArrowLeft, ArrowRight, Sparkles, Flag } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
+import ReportModal from '../../components/support/ReportModal';
 
 const UniversityProfile = () => {
     const { id } = useParams();
     const [university, setUniversity] = useState(null);
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [reportModalOpen, setReportModalOpen] = useState(false);
+    const { t } = useLanguage();
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch University Details
                 const uniRes = await fetch(`/api/universities/${id}/`);
                 const uniData = await uniRes.json();
                 setUniversity(uniData);
 
-                // Fetch Preview Courses (Limit 5)
                 const coursesRes = await fetch(`/api/programmes/?university=${id}&page_size=3`);
                 const coursesData = await coursesRes.json();
 
-                // Handle pagination response structure
                 setCourses(coursesData.results || coursesData);
             } catch (error) {
                 console.error("Failed to load profile:", error);
@@ -46,8 +47,8 @@ const UniversityProfile = () => {
     if (!university) {
         return (
             <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
-                <h2 className="text-2xl font-bold text-slate-900 mb-4">University not found</h2>
-                <Link to="/universities" className="text-accent hover:underline">Return to list</Link>
+                <h2 className="text-2xl font-bold text-slate-900 mb-4">{t('uniProfile.notFound')}</h2>
+                <Link to="/universities" className="text-accent hover:underline">{t('uniProfile.returnToList')}</Link>
             </div>
         );
     }
@@ -61,7 +62,7 @@ const UniversityProfile = () => {
                 <div className="absolute inset-0 bg-accent/10"></div>
                 <div className="container mx-auto px-6 relative z-10">
                     <Link to="/universities" className="inline-flex items-center text-slate-400 hover:text-white mb-6 transition-colors">
-                        <ArrowLeft size={16} className="mr-2" /> Back to Universities
+                        <ArrowLeft size={16} className="mr-2" /> {t('uniProfile.backToUnis')}
                     </Link>
 
                     <div className="flex flex-col md:flex-row gap-8 items-start">
@@ -101,7 +102,7 @@ const UniversityProfile = () => {
                                 {university.website && (
                                     <div className="flex items-center gap-2">
                                         <Globe size={16} className="text-accent" />
-                                        <a href={university.website} target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Visit Website</a>
+                                        <a href={university.website} target="_blank" rel="noreferrer" className="hover:text-white transition-colors">{t('uniCard.visitWebsite')}</a>
                                     </div>
                                 )}
                             </div>
@@ -121,10 +122,10 @@ const UniversityProfile = () => {
                         </div>
                         <h3 className="font-bold text-xl text-slate-900 mb-6 flex items-center gap-3 relative z-10">
                             <Sparkles size={24} className="text-accent" />
-                            About {university.name}
+                            {t('uniProfile.about')} {university.name}
                         </h3>
                         <p className="text-slate-600 leading-relaxed text-lg relative z-10">
-                            {university.overview || "No overview available for this university yet."}
+                            {university.overview || t('uniProfile.noOverview')}
                         </p>
                     </div>
 
@@ -133,17 +134,17 @@ const UniversityProfile = () => {
                         <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
                             <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
                                 <Award size={20} className="text-accent" />
-                                Accreditation & Status
+                                {t('uniProfile.accreditationTitle')}
                             </h3>
                             <div className="space-y-4 text-sm">
                                 <div className="flex justify-between items-center py-2 border-b border-slate-50">
-                                    <span className="text-slate-500">Status</span>
+                                    <span className="text-slate-500">{t('uniProfile.statusLabel')}</span>
                                     <span className="font-medium text-slate-700 bg-green-50 text-green-700 px-2 py-1 rounded-lg">
                                         {university.accreditation_status || "N/A"}
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center py-2">
-                                    <span className="text-slate-500">Registration Info</span>
+                                    <span className="text-slate-500">{t('uniProfile.registrationLabel')}</span>
                                     <span className="font-medium text-slate-700">{university.registration_no || "N/A"}</span>
                                 </div>
                             </div>
@@ -152,10 +153,10 @@ const UniversityProfile = () => {
                         <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm h-fit">
                             <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
                                 <MapPin size={20} className="text-accent" />
-                                Location
+                                {t('uniProfile.locationTitle')}
                             </h3>
                             <p className="text-slate-600 leading-relaxed whitespace-pre-line">
-                                {university.address || university.location || "No address provided."}
+                                {university.address || university.location || t('uniProfile.noAddress')}
                             </p>
                         </div>
                     </div>
@@ -167,16 +168,16 @@ const UniversityProfile = () => {
                         <div>
                             <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-2">
                                 <BookOpen className="text-accent" />
-                                Offered Courses
+                                {t('uniProfile.offeredCourses')}
                             </h2>
-                            <p className="text-slate-500">Explore programmes available at this institution</p>
+                            <p className="text-slate-500">{t('uniProfile.offeredCoursesSub')}</p>
                         </div>
 
                         <Link
                             to={`/courses?university=${university.id}`}
                             className="hidden md:flex items-center gap-2 px-6 py-3 bg-accent/10 text-accent font-semibold rounded-xl hover:bg-accent/20 transition-all"
                         >
-                            View All Courses
+                            {t('uniProfile.viewAllCourses')}
                             <ArrowRight size={18} />
                         </Link>
                     </div>
@@ -193,19 +194,36 @@ const UniversityProfile = () => {
                                     to={`/courses?university=${university.id}`}
                                     className="block w-full text-center px-6 py-4 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all"
                                 >
-                                    View All Courses
+                                    {t('uniProfile.viewAllCourses')}
                                 </Link>
                             </div>
                         </div>
                     ) : (
                         <div className="bg-slate-50 rounded-2xl p-12 text-center border-2 border-dashed border-slate-200">
                             <BookOpen className="mx-auto text-slate-300 mb-4" size={48} />
-                            <h3 className="text-lg font-bold text-slate-900 mb-2">No courses listed yet</h3>
-                            <p className="text-slate-500">We are currently updating the catalogue for this university.</p>
+                            <h3 className="text-lg font-bold text-slate-900 mb-2">{t('uniProfile.noCoursesTitle')}</h3>
+                            <p className="text-slate-500">{t('uniProfile.noCoursesSub')}</p>
                         </div>
                     )}
                 </div>
             </div>
+
+            <div className="container mx-auto px-6 pb-12 flex justify-center">
+                <button 
+                    onClick={() => setReportModalOpen(true)}
+                    className="flex items-center gap-2 text-red-500 hover:text-red-600 font-semibold text-sm transition-colors group"
+                >
+                    <Flag size={14} className="group-hover:scale-110 transition-transform fill-current" />
+                    {t('report.btn')}
+                </button>
+            </div>
+
+            <ReportModal 
+                isOpen={reportModalOpen} 
+                onClose={() => setReportModalOpen(false)} 
+                entityUrl={window.location.href}
+            />
+
             <Footer />
         </div>
     );

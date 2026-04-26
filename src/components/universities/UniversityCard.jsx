@@ -1,14 +1,14 @@
-import React from 'react';
 import { BadgeCheck, MapPin, Building2, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../../context/LanguageContext';
 
 const UniversityCard = ({ university }) => {
+    const { t } = useLanguage();
     return (
         <div className="group bg-white rounded-2xl border border-slate-200 p-6 hover:shadow-lg hover:border-accent/30 transition-all duration-300 flex flex-col h-full">
             {/* Header / Logo Area */}
             <div className="flex items-start justify-between mb-4">
                 <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400">
-                    {/* Placeholder for Logo if not present */}
                     {university.logo_url ? (
                         <img src={university.logo_url} alt={university.name} className="w-full h-full object-contain p-2" />
                     ) : (
@@ -51,7 +51,7 @@ const UniversityCard = ({ university }) => {
                     to={`/universities/${university.id}`}
                     className="text-sm font-semibold text-slate-900 group-hover:text-accent flex items-center gap-1 transition-colors"
                 >
-                    View Profile
+                    {t('uniCard.viewProfile')}
                 </Link>
                 {university.website && (
                     <a
@@ -59,7 +59,7 @@ const UniversityCard = ({ university }) => {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-2 text-slate-400 hover:text-accent transition-colors"
-                        title="Visit Website"
+                        title={t('uniCard.visitWebsite')}
                     >
                         <ExternalLink size={16} />
                     </a>

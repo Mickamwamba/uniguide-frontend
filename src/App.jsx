@@ -5,13 +5,14 @@ import UniversityBrowser from './pages/universities/UniversityBrowser';
 import UniversityProfile from './pages/universities/UniversityProfile';
 import ProgrammeProfile from './pages/programmes/ProgrammeProfile';
 import GuidanceWizard from './pages/guidance/GuidanceWizard';
-// import ChatAdvisor from './pages/chat/ChatAdvisor';
+import Contact from './pages/Contact';
 
 function App() {
   return (
     <>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/contact" element={<Contact />} />
         <Route path="/courses" element={<CourseBrowser />} />
         <Route path="/guidance" element={<GuidanceWizard />} />
         {/* <Route path="/advisor" element={<ChatAdvisor />} /> */}

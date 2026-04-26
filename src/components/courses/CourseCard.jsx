@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { GraduationCap, Clock, School, Award, ArrowRight, Building2, ChevronDown, ChevronUp } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 const CourseCard = ({ programme, academicProfile }) => {
     const [isExpanded, setIsExpanded] = useState(false);
+    const { t } = useLanguage();
 
     // If it's a grouped cluster from Agentic Search
     if (programme.offered_at) {
@@ -15,7 +17,7 @@ const CourseCard = ({ programme, academicProfile }) => {
                     <div>
                         <div className="flex items-center gap-2 text-accent text-xs font-semibold uppercase tracking-wider mb-2">
                             <Award size={14} />
-                            <span>{programme.award_level || 'Degree Program'}</span>
+                            <span>{programme.award_level || t('courseCard.degreeProgram')}</span>
                         </div>
                         <h3 className="text-xl font-bold text-slate-900 leading-tight mb-0">
                             {programme.generic_name}
@@ -24,11 +26,13 @@ const CourseCard = ({ programme, academicProfile }) => {
                 </div>
 
                 <div className="mt-4 pt-4 border-t border-slate-100">
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Offered At {programme.offered_at.length} Institutions:</p>
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+                        {t('courseCard.offeredAt')} {programme.offered_at.length} {t('courseCard.institutions')}:
+                    </p>
                     <div className="flex flex-col gap-2">
                         {visibleOffers.map((offer) => (
-                            <Link 
-                                key={offer.id} 
+                            <Link
+                                key={offer.id}
                                 to={`/programmes/${offer.id}`}
                                 className="group flex flex-col p-4 rounded-xl bg-slate-50 border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/50 transition-all"
                             >
@@ -38,7 +42,7 @@ const CourseCard = ({ programme, academicProfile }) => {
                                             <Building2 size={14} />
                                         </div>
                                         <span className="font-medium text-slate-700 group-hover:text-indigo-700 transition-colors">
-                                            {(offer.university?.short_name || offer.university_short_name) ? 
+                                            {(offer.university?.short_name || offer.university_short_name) ?
                                                 `${offer.university?.name || offer.university_name || 'Unknown University'} (${(offer.university?.short_name || offer.university_short_name)})`
                                                 : (offer.university?.name || offer.university_name || 'Unknown University')
                                             }
@@ -47,7 +51,7 @@ const CourseCard = ({ programme, academicProfile }) => {
                                     <div className="flex items-center gap-3 shrink-0">
                                         {Number(offer.duration) > 0 && (
                                             <span className="text-xs text-slate-500 hidden sm:block">
-                                                {offer.duration} Years
+                                                {offer.duration} {t('courseCard.years')}
                                             </span>
                                         )}
                                         <ArrowRight size={16} className="text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all" />
@@ -57,23 +61,23 @@ const CourseCard = ({ programme, academicProfile }) => {
                                     <div className="mt-3 pt-3 border-t border-slate-200 border-dashed text-xs text-slate-600 flex gap-2 items-start">
                                         <GraduationCap size={14} className="shrink-0 mt-0.5 text-amber-600" />
                                         <div className="line-clamp-2 group-hover:line-clamp-none transition-all duration-300">
-                                            <strong className="text-slate-700 font-semibold uppercase tracking-wider text-[10px] block mb-0.5">ACSEE Admission Entry Profile</strong>
+                                            <strong className="text-slate-700 font-semibold uppercase tracking-wider text-[10px] block mb-0.5">{t('courseCard.acseeProfile')}</strong>
                                             {offer.requirements.find(r => r.pathway === 'ACSEE').description}
                                         </div>
                                     </div>
                                 )}
                             </Link>
                         ))}
-                        
+
                         {hasManyOffers && (
                             <button
                                 onClick={() => setIsExpanded(!isExpanded)}
                                 className="mt-2 w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-indigo-600 bg-indigo-50/50 hover:bg-indigo-50 border border-transparent hover:border-indigo-100 rounded-xl transition-all"
                             >
                                 {isExpanded ? (
-                                    <>Show Less <ChevronUp size={16} /></>
+                                    <>{t('courseCard.showLess')} <ChevronUp size={16} /></>
                                 ) : (
-                                    <>Show {programme.offered_at.length - 5} More Institutions <ChevronDown size={16} /></>
+                                    <>Show {programme.offered_at.length - 5} {t('courseCard.showMore')} <ChevronDown size={16} /></>
                                 )}
                             </button>
                         )}
@@ -95,7 +99,7 @@ const CourseCard = ({ programme, academicProfile }) => {
                     <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
                         <School size={14} />
                         <span>
-                            {(programme.university?.short_name || programme.university_short_name) ? 
+                            {(programme.university?.short_name || programme.university_short_name) ?
                                 `${programme.university?.name || programme.university_name || 'Unknown University'} (${(programme.university?.short_name || programme.university_short_name)})`
                                 : (programme.university?.name || programme.university_name || 'Unknown University')
                             }
@@ -114,7 +118,7 @@ const CourseCard = ({ programme, academicProfile }) => {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-slate-600">
                     <Clock size={16} className="text-indigo-500" />
-                    <span>{programme.duration_months > 0 ? `${programme.duration_months} Months` : '--'}</span>
+                    <span>{programme.duration_months > 0 ? `${programme.duration_months} ${t('courseCard.months')}` : '--'}</span>
                 </div>
             </div>
 
@@ -128,7 +132,6 @@ const CourseCard = ({ programme, academicProfile }) => {
                     </span>
                 )}
             </div>
-            
         </Link>
     );
 };
