@@ -25,7 +25,8 @@ export default {
             },
             fontFamily: {
                 sans: ['Inter', 'sans-serif'],
-                display: ['Calistoga', 'serif'], // Good for "University" feel
+                display: ['Calistoga', 'serif'],
+                serif: ['Fraunces', 'Georgia', 'serif'], // quiz headings
             },
             animation: {
                 'fade-in': 'fadeIn 0.5s ease-out',

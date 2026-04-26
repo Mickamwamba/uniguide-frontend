@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { BookOpen, Clock, Award, School, ChevronDown, CheckCircle, ArrowLeft, ArrowRight, Loader2, Briefcase } from 'lucide-react';
+import { trackTelemetry } from '../../utils/telemetry';
 
 const ProgrammeProfile = () => {
     const { id } = useParams();
@@ -16,6 +17,13 @@ const ProgrammeProfile = () => {
                 if (!res.ok) throw new Error("Failed to fetch");
                 const data = await res.json();
                 setProgramme(data);
+                
+                // Track Telemetry natively
+                trackTelemetry('page_view', { 
+                    entity_type: 'PROGRAMME', 
+                    entity_id: id 
+                });
+                
             } catch (error) {
                 console.error(error);
             } finally {
@@ -93,7 +101,7 @@ const ProgrammeProfile = () => {
                             </div>
                             <div>
                                 <p className="text-xs text-slate-500 uppercase font-semibold">Duration</p>
-                                <p className="font-medium">{programme.duration_months} Months</p>
+                                <p className="font-medium">{programme.duration_months > 0 ? `${programme.duration_months} Months` : '--'}</p>
                             </div>
                         </div>
 
@@ -127,6 +135,27 @@ const ProgrammeProfile = () => {
                         </section>
                     )}
 
+                    {/* Admission Requirements */}
+                    {programme.admission_requirements && programme.admission_requirements.length > 0 && (
+                        <section>
+                            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                                Admission Requirements
+                            </h2>
+                            <div className="space-y-4">
+                                {programme.admission_requirements.map((req, idx) => (
+                                    <div key={idx} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm border-l-4 border-l-amber-500">
+                                        <h3 className="font-bold text-slate-800 uppercase tracking-wide text-xs mb-2">
+                                            {req.pathway === 'ACSEE' ? 'Form 6 (ACSEE) Pathway' : 'Ordinary Diploma Pathway'}
+                                        </h3>
+                                        <p className="text-slate-600 text-sm leading-relaxed">
+                                            {req.description}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
                     {/* Career Outlook */}
                     {programme.career_outlooks && programme.career_outlooks.length > 0 && (
                         <section>
@@ -140,9 +169,9 @@ const ProgrammeProfile = () => {
                                             <Briefcase size={22} />
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-slate-800 text-lg mb-2 group-hover:text-accent transition-colors">{career.title.replace('[AI Auto-Generated] ', '')}</h3>
+                                            <h3 className="font-bold text-slate-800 text-lg mb-2 group-hover:text-accent transition-colors">{(career.title || 'Career Opportunity').replace('[AI Auto-Generated] ', '')}</h3>
                                             <p className="text-slate-600 text-sm leading-relaxed">
-                                                {career.description.replace('[AI Auto-Generated] ', '').trim()}
+                                                {(career.description || '').replace('[AI Auto-Generated] ', '').trim()}
                                             </p>
                                         </div>
                                     </div>

@@ -33,7 +33,7 @@ const UniversityCard = ({ university }) => {
             <div className="flex-1">
                 <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-accent transition-colors line-clamp-2">
                     <Link to={`/universities/${university.id}`}>
-                        {university.name}
+                        {university.short_name ? `${university.name} (${university.short_name})` : university.name}
                     </Link>
                 </h3>
 

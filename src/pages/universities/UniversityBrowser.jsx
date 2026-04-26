@@ -47,6 +47,7 @@ const UniversityBrowser = () => {
     // We could use backend filtering, but for <100 items client-side is faster and smoother
     const filteredUniversities = universities.filter(uni => {
         const matchesSearch = uni.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (uni.short_name && uni.short_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
             (uni.head_office && uni.head_office.toLowerCase().includes(searchTerm.toLowerCase()));
 
         const matchesRegion = selectedRegion ? uni.head_office === selectedRegion : true;

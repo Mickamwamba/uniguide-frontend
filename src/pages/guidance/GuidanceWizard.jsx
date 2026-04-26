@@ -2,14 +2,12 @@ import React, { useState } from 'react';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import CourseCard from '../../components/courses/CourseCard';
-import { ChevronRight, GraduationCap, Sparkles, BookOpen, Loader2, CheckCircle } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Loader2, CheckCircle, Sparkles } from 'lucide-react';
+import { trackTelemetry } from '../../utils/telemetry';
 
-const STEPS = [
-    { label: 'Academic',    icon: <GraduationCap size={20} />, color: 'bg-indigo-50 text-indigo-600' },
-    { label: 'Interests',   icon: <Sparkles size={20} />,      color: 'bg-purple-50 text-purple-600' },
-    { label: 'Archetype',   icon: <BookOpen size={20} />,      color: 'bg-blue-50 text-blue-600' },
-    { label: 'Results',     icon: <CheckCircle size={20} />,   color: 'bg-amber-50 text-amber-600' },
-];
+// ─── Data (from claude branch) ────────────────────────────────────────────────
+
+const STEPS = ['Academic', 'Interests', 'Working style', 'Results'];
 
 const COMBINATIONS = [
     { value: 'PCM', label: 'PCM — Physics, Chemistry, Mathematics' },
@@ -29,7 +27,8 @@ const COMBINATIONS = [
     { value: 'KEC', label: 'KEC — Kiswahili, English, Chinese' },
 ];
 
-// Map combination codes to their subject names
+const GRADES = ['A', 'B', 'C', 'D', 'E', 'S', 'F'];
+
 const COMBINATION_SUBJECTS = {
     PCM: ['Physics', 'Chemistry', 'Mathematics'],
     PCB: ['Physics', 'Chemistry', 'Biology'],
@@ -48,124 +47,244 @@ const COMBINATION_SUBJECTS = {
     KEC: ['Kiswahili', 'English', 'Chinese'],
 };
 
+const PERSONALITY_QUESTIONS = [
+    {
+        key: 'environment',
+        question: 'When you imagine your dream job, where are you mostly spending your day?',
+        options: [
+            { value: 'A', label: 'Smart office', sub: 'Computer, documents, analysis.' },
+            { value: 'B', label: 'Out in the field', sub: 'Construction, farm, nature.' },
+            { value: 'C', label: 'Hospital or clinic', sub: 'Helping patients directly.' },
+            { value: 'D', label: 'On the move', sub: 'Meeting groups, running a business.' },
+        ],
+    },
+    {
+        key: 'activity',
+        question: 'At school, which activity do you actually enjoy most?',
+        options: [
+            { value: 'A', label: 'Numbers & logic', sub: 'Calculating, exact answers.' },
+            { value: 'B', label: 'Writing & debate', sub: 'Essays, presenting ideas.' },
+            { value: 'C', label: 'Lab & hands-on', sub: 'Experiments, fixing things.' },
+            { value: 'D', label: 'Helping others', sub: 'Organising groups, counselling.' },
+        ],
+    },
+    {
+        key: 'impact',
+        question: 'If you became rich, what would you do for your hometown first?',
+        options: [
+            { value: 'A', label: 'Free hospital', sub: 'Modern hospital & ambulances.' },
+            { value: 'B', label: 'Factory & jobs', sub: 'Employs thousands of youth.' },
+            { value: 'C', label: 'Tech app', sub: 'Clever app solving a deep problem.' },
+            { value: 'D', label: 'Big farm', sub: 'Cheap, quality food for all.' },
+            { value: 'E', label: 'NGO & rights', sub: 'Fight for fair laws.' },
+        ],
+    },
+    {
+        key: 'role',
+        question: 'In a difficult group project, what is your natural role?',
+        options: [
+            { value: 'A', label: 'The Planner', sub: 'Divides work, makes schedules.' },
+            { value: 'B', label: 'The Researcher', sub: 'Finds the facts & evidence.' },
+            { value: 'C', label: 'The Builder', sub: 'Builds the final product.' },
+            { value: 'D', label: 'The Speaker', sub: 'Confidently presents to everyone.' },
+        ],
+    },
+];
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 const GuidanceWizard = () => {
     const [step, setStep] = useState(1);
-    const [stepAck, setStepAck] = useState(''); // micro-acknowledgement message
-    const [error, setError] = useState(null);
+    const [personalityQ, setPersonalityQ] = useState(0);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
     const [matches, setMatches] = useState([]);
     const [synthesis, setSynthesis] = useState('');
     const [isSendingEmail, setIsSendingEmail] = useState(false);
+    const [emailAck, setEmailAck] = useState('');
+
     const [formData, setFormData] = useState({
-        combination: '',
+        pathway: '',
+        acsee: { combination: '', grades: {} },
+        diploma: { field: '', gpa: '' },
         interests: '',
-        personality: {
-            school_moment: '',
-            hobby: '',
-            dealbreaker: '',
-            endgame: ''
-        }
+        personality: { environment: '', activity: '', impact: '', role: '' },
+        captureEmail: '',
     });
 
-    const advanceStep = (ack) => {
-        setStepAck(ack);
-        setTimeout(() => setStepAck(''), 1800);
-        setStep(prev => prev + 1);
+    const advance = () => setStep(s => s + 1);
+
+    const back = () => {
+        if (step === 3 && personalityQ > 0) { setPersonalityQ(q => q - 1); return; }
+        setStep(s => s - 1);
+        if (step === 3) setPersonalityQ(0);
     };
 
-    const handleBack = () => setStep(prev => prev - 1);
+    // Auto-advance through personality questions on selection
+    const handlePersonalitySelect = (key, value) => {
+        const updated = { ...formData.personality, [key]: value };
+        setFormData(f => ({ ...f, personality: updated }));
 
-    const handleFindMatches = async () => {
-        advanceStep('');
+        if (personalityQ < PERSONALITY_QUESTIONS.length - 1) {
+            setTimeout(() => setPersonalityQ(q => q + 1), 220);
+        } else {
+            // Last question — auto-submit
+            setTimeout(() => findMatches({ ...formData, personality: updated }), 300);
+        }
+    };
+
+    const findMatches = async (data = formData) => {
+        setStep(4);
         setLoading(true);
         setError(null);
         try {
-            const response = await fetch('/api/recommend/', {
+            const res = await fetch('/api/recommend/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    combination: formData.combination,
-                    interests: formData.interests,
-                    personality: formData.personality
+                    combination: data.pathway === 'ACSEE' ? data.acsee.combination : data.diploma.field,
+                    interests: data.interests,
+                    personality: data.personality,
                 }),
             });
-
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Failed to fetch recommendations');
-
-            if (data && Array.isArray(data.matches)) {
-                setMatches(data.matches);
-                setSynthesis(data.ai_synthesis || '');
-            } else if (Array.isArray(data)) {
-                setMatches(data);
-            } else {
-                setMatches([]);
+            const json = await res.json();
+            if (!res.ok) throw new Error(json.error || 'Failed');
+            
+            // Build heavily verbose human-readable logs
+            const comboLabel = data.pathway === 'ACSEE' ? (COMBINATIONS.find(c => c.value === data.acsee.combination)?.label || data.acsee.combination) : data.diploma.field;
+            let psychoLogs = {};
+            for (const key of Object.keys(data.personality)) {
+                const qObj = PERSONALITY_QUESTIONS.find(q => q.key === key);
+                if (qObj) {
+                    const option = qObj.options.find(o => o.value === data.personality[key]);
+                    if (option) {
+                         psychoLogs[qObj.question] = `${option.label} - ${option.sub}`;
+                    }
+                }
             }
-        } catch (err) {
-            setError(err.message);
+            
+            trackTelemetry('guidance_conversion', { 
+                pathway: data.pathway, 
+                academic_inputs: {
+                    background: data.pathway,
+                    combination: comboLabel,
+                    acsee_grades: data.acsee.grades,
+                    diploma_gpa: data.diploma.gpa
+                }, 
+                psychometric_inputs: psychoLogs, 
+                ai_synthesis: json.ai_synthesis || '',
+                ai_recommendations: Array.isArray(json.matches) ? json.matches.map(m => {
+                    // Detect if this is an Agentic Grouped Cluster
+                    if (m.offered_at && m.offered_at.length > 0) {
+                        return {
+                            programme_name: m.generic_name || m.name,
+                            offered_at_count: m.offered_at.length,
+                            institutions: m.offered_at.map(offer => ({
+                                programme_id: offer.id,
+                                university_id: offer.university?.id || offer.university,
+                                university_name: offer.university?.name || offer.university_name || offer.university_short_name || 'Unknown University'
+                            }))
+                        };
+                    }
+                    // Flat fallback route
+                    return {
+                        programme_id: m.id,
+                        programme_name: m.generic_name || m.name,
+                        university_id: m.university?.id || m.university,
+                        university_name: m.university?.name || m.university_name || m.university_short_name || 'Unknown University'
+                    };
+                }) : [],
+                converted_to_lead: false
+            });
+            
+            if (Array.isArray(json.matches)) { setMatches(json.matches); setSynthesis(json.ai_synthesis || ''); }
+            else if (Array.isArray(json)) { setMatches(json); }
+            else setMatches([]);
+        } catch (e) {
+            setError(e.message);
         } finally {
             setLoading(false);
         }
     };
 
-    const subjects = COMBINATION_SUBJECTS[formData.combination] || [];
+    const subjects = formData.pathway === 'ACSEE' ? (COMBINATION_SUBJECTS[formData.acsee.combination] || []) : [];
+    const currentQ = PERSONALITY_QUESTIONS[personalityQ];
+    const activeGroup = step === 1 ? 0 : step === 2 ? 1 : step === 3 ? 2 : 3;
 
     return (
-        <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+        <div className="min-h-screen bg-slate-50">
             <Navbar />
 
-            <div className="container mx-auto px-6 py-12 max-w-4xl">
-
-                {/* Step Progress — numbered circles */}
-                <div className="mb-12 max-w-lg mx-auto">
-                    <div className="flex items-center justify-between">
-                        {STEPS.map((s, i) => {
-                            const stepNum = i + 1;
-                            const isCompleted = step > stepNum;
-                            const isActive = step === stepNum;
-                            return (
-                                <React.Fragment key={s.label}>
-                                    <div className="flex flex-col items-center gap-1.5">
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 shadow-sm
-                                            ${isCompleted ? 'bg-warm text-white shadow-amber-400/30' :
-                                              isActive    ? 'bg-accent text-white shadow-indigo-500/30' :
-                                                            'bg-slate-200 text-slate-400'}`}
-                                        >
-                                            {isCompleted ? <CheckCircle size={18} /> : stepNum}
+            {/* Progress bar */}
+            {step < 4 && (
+                <div className="border-b border-slate-200 bg-white">
+                    <div className="container mx-auto px-6 py-5 max-w-lg">
+                        <div className="flex items-center">
+                            {STEPS.slice(0, -1).concat('Results').map((g, i) => {
+                                const done = activeGroup > i;
+                                const active = activeGroup === i;
+                                return (
+                                    <React.Fragment key={g}>
+                                        <div className="flex flex-col items-center gap-1.5 shrink-0">
+                                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300
+                                                ${done ? 'bg-warm text-white shadow-sm shadow-amber-400/30' :
+                                                    active ? 'bg-accent text-white shadow-sm shadow-indigo-500/30' :
+                                                        'bg-slate-200 text-slate-400'}`}
+                                            >
+                                                {done ? <CheckCircle size={16} /> : i + 1}
+                                            </div>
+                                            <span className={`text-xs font-medium hidden sm:block transition-colors
+                                                ${active ? 'text-accent' : done ? 'text-warm' : 'text-slate-400'}`}>
+                                                {g}
+                                            </span>
                                         </div>
-                                        <span className={`text-xs font-medium hidden sm:block ${isActive ? 'text-accent' : isCompleted ? 'text-warm' : 'text-slate-400'}`}>
-                                            {s.label}
-                                        </span>
-                                    </div>
-                                    {i < STEPS.length - 1 && (
-                                        <div className={`flex-1 h-1 mx-2 rounded-full transition-all duration-500 ${step > stepNum ? 'bg-warm' : 'bg-slate-200'}`} />
-                                    )}
-                                </React.Fragment>
-                            );
-                        })}
+                                        {i < STEPS.length - 1 && (
+                                            <div className={`flex-1 h-1 mx-3 mb-4 rounded-full transition-all duration-500 ${activeGroup > i ? 'bg-warm' : 'bg-slate-200'}`} />
+                                        )}
+                                    </React.Fragment>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
+            )}
 
-                {/* Step content card */}
+            <div className="container mx-auto px-6 py-12 max-w-4xl">
                 <div className="bg-white rounded-3xl p-8 md:p-12 shadow-xl border border-slate-100 min-h-[400px]">
 
-                    {/* ── Step 1: Academic ── */}
-                    {step === 1 && (
-                        <div className="space-y-6 max-w-2xl mx-auto animate-fade-in">
-                            <StepHeader
-                                icon={<GraduationCap size={32} />}
-                                iconClass="bg-indigo-50 text-indigo-600"
-                                title="Your Academic Profile"
-                                subtitle="Let's start with your A-Level background."
-                            />
+                {/* ── Step 1: Academic ── */}
+                {step === 1 && (
+                    <div className="animate-fade-in">
+                        <QuizHeader
+                            title="What is your academic background?"
+                            sub="We'll evaluate your qualifications securely on-the-fly."
+                        />
 
-                            <div className="space-y-5">
+                        <div className="grid grid-cols-2 gap-4 mb-6">
+                            <button
+                                onClick={() => setFormData(f => ({ ...f, pathway: 'ACSEE' }))}
+                                className={`p-4 rounded-xl border transition-all text-left ${formData.pathway === 'ACSEE' ? 'border-accent bg-accent/5' : 'border-slate-200 hover:border-slate-300'}`}
+                            >
+                                <h4 className={`font-bold mb-1 ${formData.pathway === 'ACSEE' ? 'text-accent' : 'text-slate-900'}`}>Form 6 Graduate</h4>
+                                <p className="text-xs text-slate-500">I have A-Level principle passes</p>
+                            </button>
+                            <button
+                                onClick={() => setFormData(f => ({ ...f, pathway: 'DIPLOMA' }))}
+                                className={`p-4 rounded-xl border transition-all text-left ${formData.pathway === 'DIPLOMA' ? 'border-accent bg-accent/5' : 'border-slate-200 hover:border-slate-300'}`}
+                            >
+                                <h4 className={`font-bold mb-1 ${formData.pathway === 'DIPLOMA' ? 'text-accent' : 'text-slate-900'}`}>Diploma Graduate</h4>
+                                <p className="text-xs text-slate-500">I have an Ordinary Diploma</p>
+                            </button>
+                        </div>
+
+                        {formData.pathway === 'ACSEE' && (
+                            <div className="space-y-5 mb-6 animate-fade-in border-t border-slate-100 pt-6">
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-2">Subject Combination</label>
                                     <select
-                                        className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 outline-none text-slate-700"
-                                        value={formData.combination}
-                                        onChange={(e) => setFormData({ ...formData, combination: e.target.value })}
+                                        className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 outline-none text-slate-700 transition-colors"
+                                        value={formData.acsee.combination}
+                                        onChange={(e) => setFormData(f => ({ ...f, acsee: { combination: e.target.value, grades: {} } }))}
                                     >
                                         <option value="">Select your combination</option>
                                         {COMBINATIONS.map(c => (
@@ -173,268 +292,270 @@ const GuidanceWizard = () => {
                                         ))}
                                     </select>
                                 </div>
-                            </div>
-
-                            <div className="pt-4">
-                                <button
-                                    onClick={() => advanceStep('Academic profile saved')}
-                                    disabled={!formData.combination}
-                                    className="w-full py-4 bg-accent text-white font-bold rounded-xl hover:bg-accent-hover transition-colors flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-                                >
-                                    Continue <ChevronRight size={20} />
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-
-
-                    {/* ── Step 2: Interests ── */}
-                    {step === 2 && (
-                        <div className="space-y-6 max-w-2xl mx-auto animate-fade-in">
-                            {stepAck && <StepAck message={stepAck} />}
-                            <StepHeader
-                                icon={<Sparkles size={32} />}
-                                iconClass="bg-purple-50 text-purple-600"
-                                title="Interests & Passions"
-                                subtitle="What do you love doing? What are your career goals?"
-                            />
-
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-2">Tell us about yourself</label>
-                                <textarea
-                                    className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 outline-none min-h-[140px] text-slate-700 resize-none"
-                                    placeholder="I enjoy solving math problems, building things, and working with computers. I dream of becoming an engineer one day..."
-                                    value={formData.interests}
-                                    onChange={(e) => setFormData({ ...formData, interests: e.target.value })}
-                                />
-                                <p className="text-xs text-slate-400 mt-1.5">The more detail you give, the better the AI can match you.</p>
-                            </div>
-
-                            <div className="flex gap-4">
-                                <button onClick={handleBack} className="flex-1 py-4 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors">
-                                    Back
-                                </button>
-                                <button
-                                    onClick={() => advanceStep('Interests saved')}
-                                    disabled={!formData.interests.trim()}
-                                    className="flex-1 py-4 bg-accent text-white font-bold rounded-xl hover:bg-accent-hover transition-colors flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-                                >
-                                    Continue <ChevronRight size={20} />
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* ── Step 3: The Archetype Quiz ── */}
-                    {step === 3 && (
-                        <div className="space-y-6 max-w-2xl mx-auto animate-fade-in">
-                            {stepAck && <StepAck message={stepAck} />}
-                            <StepHeader
-                                icon={<Sparkles size={32} />}
-                                iconClass="bg-purple-50 text-purple-600"
-                                title="Your Career DNA"
-                                subtitle="Answer 4 quick questions to discover your natural archetype."
-                            />
-
-                            <div className="space-y-5">
-                                <PersonalitySelect
-                                    label="1. Looking back at school, what was your favorite moment?"
-                                    value={formData.personality.school_moment}
-                                    onChange={(v) => setFormData({ ...formData, personality: { ...formData.personality, school_moment: v } })}
-                                    placeholder="Choose your favorite moment"
-                                    options={[
-                                        { value: 'Cracking hard Math/Physics problems', label: 'Cracking a really hard Math/Physics problem' },
-                                        { value: 'Doing lab practicals and experiments', label: 'Doing practicals in the laboratory' },
-                                        { value: 'Leading discussions or debating', label: 'Leading group discussions or debates' },
-                                        { value: 'Helping students understand difficult topics', label: 'Helping friends understand difficult topics' },
-                                        { value: 'Organizing school events or mini-businesses', label: 'Organizing school events or business ideas' },
-                                    ]}
-                                />
-                                <PersonalitySelect
-                                    label="2. On a completely free Saturday, what are you most likely doing?"
-                                    value={formData.personality.hobby}
-                                    onChange={(v) => setFormData({ ...formData, personality: { ...formData.personality, hobby: v } })}
-                                    placeholder="Choose an activity"
-                                    options={[
-                                        { value: 'Tinkering with phones/computers', label: 'Tinkering with phones, computers, or learning tech' },
-                                        { value: 'Reading or watching documentaries', label: 'Reading books or watching documentaries/news' },
-                                        { value: 'Socializing and meeting new people', label: 'Going out to socialize and meet new people' },
-                                        { value: 'Drawing, writing, or editing media', label: 'Creating things—drawing, writing, editing videos' },
-                                    ]}
-                                />
-                                <PersonalitySelect
-                                    label="3. What is the ONE thing you NEVER want to do?"
-                                    value={formData.personality.dealbreaker}
-                                    onChange={(v) => setFormData({ ...formData, personality: { ...formData.personality, dealbreaker: v } })}
-                                    placeholder="Choose your dealbreaker"
-                                    options={[
-                                        { value: 'Memorizing essays or theories', label: 'Memorizing long historical essays or theories' },
-                                        { value: 'Doing complex Math or Physics equations', label: 'Looking at complex Math or Physics equations' },
-                                        { value: 'Public speaking in front of crowds', label: 'Speaking or presenting in front of crowds' },
-                                        { value: 'Working alone in a lab or coding all day', label: 'Stuck in a laboratory or staring at code all day' },
-                                    ]}
-                                />
-                                <PersonalitySelect
-                                    label="4. Looking 10 years ahead, what is your endgame?"
-                                    value={formData.personality.endgame}
-                                    onChange={(v) => setFormData({ ...formData, personality: { ...formData.personality, endgame: v } })}
-                                    placeholder="Choose your career goal"
-                                    options={[
-                                        { value: 'Innovator (Building/Inventing tech)', label: 'The Innovator: I want to build or invent new tech/systems' },
-                                        { value: 'Pillar of Stability (Government/Teaching)', label: 'The Pillar: I want a secure, respected job to provide for my family' },
-                                        { value: 'Caregiver (Saving lives or helping people)', label: 'The Caregiver: I want to actively save lives or defend people' },
-                                        { value: 'The Boss (Entrepreneur/Manager)', label: 'The Boss: I want to start my own companies and lead teams' },
-                                        { value: 'The Explorer (Working out in the field)', label: 'The Explorer: I want an adventurous career out in the field' },
-                                    ]}
-                                />
-                            </div>
-
-                            <div className="flex gap-4 pt-2">
-                                <button onClick={handleBack} className="flex-1 py-4 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors">
-                                    Back
-                                </button>
-                                <button
-                                    onClick={handleFindMatches}
-                                    disabled={!formData.personality.school_moment || !formData.personality.hobby || !formData.personality.dealbreaker || !formData.personality.endgame}
-                                    className="flex-1 py-4 bg-accent text-white font-bold rounded-xl hover:bg-accent-hover transition-colors flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20 disabled:opacity-40 disabled:cursor-not-allowed"
-                                >
-                                    Find My Best Courses <Sparkles size={20} />
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* ── Step 4: Results ── */}
-                    {step === 4 && (
-                        <div className="space-y-8 animate-fade-in">
-                            {loading ? (
-                                <div className="text-center py-20">
-                                    <Loader2 className="animate-spin text-accent mx-auto mb-4" size={48} />
-                                    <h2 className="page-heading text-2xl font-bold mb-2">Analysing your profile...</h2>
-                                    <p className="text-slate-500">Matching you against every programme in our database.</p>
-                                    <p className="text-slate-400 text-sm mt-2">This usually takes 10–15 seconds.</p>
-                                </div>
-                            ) : error ? (
-                                <div className="text-center py-12">
-                                    <div className="bg-red-50 text-red-600 p-6 rounded-2xl max-w-lg mx-auto mb-6">
-                                        <p className="font-bold">Something went wrong</p>
-                                        <p className="text-sm mt-2">{error}</p>
+                                {COMBINATION_SUBJECTS[formData.acsee.combination]?.length > 0 && (
+                                    <div className="animate-fade-in bg-white rounded-xl border border-slate-200 p-5">
+                                        <p className="text-sm font-semibold text-slate-700 mb-4">Your grades</p>
+                                        <div className="grid grid-cols-3 gap-4">
+                                            {COMBINATION_SUBJECTS[formData.acsee.combination].map(sub => (
+                                                <div key={sub}>
+                                                    <label className="text-xs text-slate-500 block mb-1.5">{sub}</label>
+                                                    <select
+                                                        className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-sm outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
+                                                        value={formData.acsee.grades[sub] || ''}
+                                                        onChange={e => setFormData(f => ({ ...f, acsee: { ...f.acsee, grades: { ...f.acsee.grades, [sub]: e.target.value } } }))}
+                                                    >
+                                                        <option value="">Grade</option>
+                                                        {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
+                                                    </select>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
+                                )}
+                            </div>
+                        )}
+
+                        {formData.pathway === 'DIPLOMA' && (
+                            <div className="space-y-4 mb-6 animate-fade-in border-t border-slate-100 pt-6">
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Exact Diploma Title</label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. Diploma in Clinical Medicine"
+                                        className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 outline-none text-slate-700 transition-colors"
+                                        value={formData.diploma.field}
+                                        onChange={(e) => setFormData(f => ({ ...f, diploma: { ...f.diploma, field: e.target.value } }))}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Final GPA</label>
+                                    <input
+                                        type="number"
+                                        step="0.1"
+                                        min="0"
+                                        max="5"
+                                        placeholder="e.g. 3.5"
+                                        className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 outline-none text-slate-700 transition-colors"
+                                        value={formData.diploma.gpa}
+                                        onChange={(e) => setFormData(f => ({ ...f, diploma: { ...f.diploma, gpa: e.target.value } }))}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex justify-between items-center">
+                            <span className="text-xs text-slate-400">Step 1 of {STEPS.length}</span>
+                            <button
+                                onClick={advance}
+                                disabled={
+                                    !formData.pathway ||
+                                    (formData.pathway === 'ACSEE' && !formData.acsee.combination) ||
+                                    (formData.pathway === 'DIPLOMA' && (!formData.diploma.field || !formData.diploma.gpa))
+                                }
+                                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-accent text-white font-semibold text-sm hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                            >
+                                Continue <ArrowRight size={16} />
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Step 2: Interests ── */}
+                {step === 2 && (
+                    <div className="animate-fade-in">
+                        <QuizHeader
+                            title="What are your interests and goals?"
+                            sub="The more detail you give, the better the AI can match you."
+                        />
+
+                        <textarea
+                            autoFocus
+                            className="w-full p-4 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none min-h-[160px] text-slate-700 resize-none text-sm leading-relaxed mb-6"
+                            placeholder="I enjoy solving math problems, building things, and working with computers. I dream of becoming an engineer one day..."
+                            value={formData.interests}
+                            onChange={e => setFormData(f => ({ ...f, interests: e.target.value }))}
+                        />
+
+                        <div className="flex justify-between items-center">
+                            <button onClick={back} className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition-colors text-sm">
+                                <ArrowLeft size={15} /> Back
+                            </button>
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs text-slate-400">Step 2 of {STEPS.length}</span>
+                                <button
+                                    onClick={advance}
+                                    disabled={!formData.interests.trim()}
+                                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-accent text-white font-semibold text-sm hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                                >
+                                    Continue <ArrowRight size={16} />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Step 3: Working style (personality) ── */}
+                {step === 3 && (
+                    <div className="animate-fade-in" key={personalityQ}>
+                        <QuizHeader
+                            title={currentQ.question}
+                            sub={null}
+                        />
+
+                        {/* Sub-step dots */}
+                        <div className="flex gap-1.5 mb-8">
+                            {PERSONALITY_QUESTIONS.map((_, i) => (
+                                <div key={i} className={`h-1 rounded-full transition-all duration-300
+                                    ${i < personalityQ + 1 ? 'bg-accent' : 'bg-slate-200'}
+                                    ${i === personalityQ ? 'w-8' : 'w-4'}`}
+                                />
+                            ))}
+                        </div>
+
+                        <div className={`grid gap-3 mb-8 ${currentQ.options.length > 4 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                            {currentQ.options.map(opt => (
+                                <button
+                                    key={opt.value}
+                                    onClick={() => handlePersonalitySelect(currentQ.key, opt.value)}
+                                    className={`text-left p-5 rounded-xl border transition-all
+                                        ${formData.personality[currentQ.key] === opt.value
+                                            ? 'bg-accent/5 border-accent'
+                                            : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm'}`}
+                                >
+                                    <h3 className={`font-semibold text-base mb-1 ${formData.personality[currentQ.key] === opt.value ? 'text-accent' : 'text-slate-900'}`}>
+                                        {opt.label}
+                                    </h3>
+                                    <p className="text-sm text-slate-500 leading-snug">{opt.sub}</p>
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="flex justify-between items-center">
+                            <button onClick={back} className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition-colors text-sm">
+                                <ArrowLeft size={15} /> Back
+                            </button>
+                            <span className="text-xs text-slate-400">Step 3 of {STEPS.length}</span>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Step 4: Results ── */}
+                {step === 4 && (
+                    <div className="animate-fade-in">
+                        {loading ? (
+                            <div className="text-center py-24">
+                                <Loader2 className="animate-spin text-accent mx-auto mb-5" size={44} />
+                                <h2 className="page-heading text-2xl font-bold text-slate-900 mb-2">Analysing your profile…</h2>
+                                <p className="text-slate-500">Matching you against every programme in our database.</p>
+                                <p className="text-slate-400 text-sm mt-1.5">This usually takes 10–15 seconds.</p>
+                            </div>
+                        ) : error ? (
+                            <div className="text-center py-16">
+                                <div className="bg-red-50 text-red-600 p-6 rounded-2xl max-w-lg mx-auto mb-6">
+                                    <p className="font-bold mb-1">Something went wrong</p>
+                                    <p className="text-sm">{error}</p>
+                                </div>
+                                <button onClick={() => { setStep(3); setError(null); }}
+                                    className="px-5 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition-colors text-sm">
+                                    Try again
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="space-y-10">
+                                <div className="text-center">
+                                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-warm-light text-amber-700 text-sm font-semibold mb-4">
+                                        <CheckCircle size={15} /> {matches.length} matches found
+                                    </div>
+                                    <h2 className="page-heading text-3xl font-bold text-slate-900">Your Top Recommendations</h2>
+
+                                    {synthesis && (
+                                        <div className="mt-6 text-left p-6 bg-indigo-50 border border-indigo-100 rounded-2xl relative shadow-inner">
+                                            <div className="absolute -top-3 -left-3 p-2 bg-indigo-600 rounded-lg text-white shadow-md">
+                                                <Sparkles size={16} />
+                                            </div>
+                                            <strong className="block text-indigo-900 mb-2 text-xs uppercase tracking-wider">AI Profile Synthesis</strong>
+                                            <p className="text-slate-700 text-base italic">"{synthesis}"</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="grid md:grid-cols-2 gap-5">
+                                    {matches.map((prog, i) => (
+                                        <CourseCard key={prog.id || i} programme={prog} academicProfile={formData} />
+                                    ))}
+                                </div>
+
+                                {/* Email capture */}
+                                <div className="border-t border-slate-100 pt-8">
+                                    <h3 className="font-semibold text-slate-900 mb-1">Save your results</h3>
+                                    <p className="text-sm text-slate-500 mb-4">Enter your email and we'll send you a copy of these matches.</p>
+                                    <div className="flex gap-2 max-w-md">
+                                        <input
+                                            type="email"
+                                            placeholder="your@email.com"
+                                            value={formData.captureEmail || ''}
+                                            onChange={e => setFormData(f => ({ ...f, captureEmail: e.target.value }))}
+                                            className="flex-1 px-4 py-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-accent/20 text-sm"
+                                        />
+                                        <button
+                                            disabled={!formData.captureEmail || isSendingEmail}
+                                            onClick={async () => {
+                                                setIsSendingEmail(true);
+                                                setEmailAck('');
+                                                try {
+                                                    const res = await fetch('/api/capture-lead/', {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({
+                                                            email: formData.captureEmail,
+                                                            combination: formData.combination,
+                                                            interests: formData.interests,
+                                                            personality: formData.personality,
+                                                            synthesis,
+                                                            matches: matches.map(m => m.generic_name).join(', '),
+                                                        })
+                                                    });
+                                                    const data = await res.json();
+                                                    if (!res.ok) throw new Error(data.error || 'Failed');
+                                                    
+                                                    trackTelemetry('guidance_conversion', { converted_to_lead: true });
+                                                    
+                                                    const sentTo = formData.captureEmail;
+                                                    setFormData(f => ({ ...f, captureEmail: '' }));
+                                                    setEmailAck(`Sent to ${sentTo}`);
+                                                    setTimeout(() => setEmailAck(''), 5000);
+                                                } catch (e) {
+                                                    setEmailAck(`Error: ${e.message}`);
+                                                    setTimeout(() => setEmailAck(''), 5000);
+                                                } finally {
+                                                    setIsSendingEmail(false);
+                                                }
+                                            }}
+                                            className="px-5 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-slate-800 disabled:opacity-40 transition-colors text-sm whitespace-nowrap flex items-center gap-2"
+                                        >
+                                            {isSendingEmail ? <Loader2 className="animate-spin" size={15} /> : null}
+                                            Send
+                                        </button>
+                                    </div>
+                                    {emailAck && (
+                                        <p className={`mt-3 text-sm font-medium ${emailAck.startsWith('Error') ? 'text-red-600' : 'text-green-600'}`}>
+                                            {emailAck}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="text-center pb-4">
                                     <button
-                                        onClick={() => { setStep(3); setError(null); }}
-                                        className="px-6 py-3 bg-slate-100 text-slate-600 font-semibold rounded-xl hover:bg-slate-200 transition-colors"
+                                        onClick={() => { setStep(1); setMatches([]); setSynthesis(''); setPersonalityQ(0); setFormData({ pathway: '', acsee: { combination: '', grades: {} }, diploma: { field: '', gpa: '' }, interests: '', personality: { environment: '', activity: '', impact: '', role: '' }, captureEmail: '' }); }}
+                                        className="text-sm text-slate-400 hover:text-primary transition-colors"
                                     >
-                                        Try Again
+                                        Start over
                                     </button>
                                 </div>
-                            ) : (
-                                <>
-                                    <div className="text-center max-w-2xl mx-auto">
-                                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-warm-light text-amber-700 text-sm font-semibold mb-4">
-                                            <CheckCircle size={15} /> Matches found
-                                        </div>
-                                        <h2 className="page-heading text-3xl font-bold text-slate-900 mb-2">Your Top Recommendations</h2>
-
-                                        {synthesis && (
-                                            <div className="mt-6 text-left p-6 bg-indigo-50 border border-indigo-100 rounded-2xl leading-relaxed relative shadow-inner">
-                                                <div className="absolute -top-3 -left-3 p-2 bg-indigo-600 rounded-lg text-white shadow-md">
-                                                    <Sparkles size={16} />
-                                                </div>
-                                                <strong className="block text-indigo-900 mb-2 text-xs uppercase tracking-wider">AI Profile Synthesis</strong>
-                                                <p className="text-slate-700 text-base italic">"{synthesis}"</p>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="grid md:grid-cols-2 gap-6">
-                                        {matches.map((prog, idx) => (
-                                            <CourseCard key={prog.id || prog.generic_name || idx} programme={prog} />
-                                        ))}
-                                    </div>
-
-                                    <div className="text-center pt-8 border-t border-slate-100 max-w-lg mx-auto">
-                                        <div className="bg-warm-light/30 rounded-2xl p-6 border border-amber-100 mb-6 relative">
-                                            <div className="absolute -top-3 -right-3 p-1.5 bg-green-500 rounded-full text-white shadow-md">
-                                                <CheckCircle size={16} />
-                                            </div>
-                                            <h3 className="font-bold text-slate-900 mb-1">Send these exact AI recommendations!</h3>
-                                            <p className="text-sm text-slate-600 mb-4">Enter your email address and we'll officially send you a copy of these perfect matches so you don't lose them.</p>
-                                            <div className="flex gap-2">
-                                                <input 
-                                                    type="email" 
-                                                    placeholder="Enter your email address" 
-                                                    onChange={(e) => setFormData({...formData, captureEmail: e.target.value})}
-                                                    value={formData.captureEmail || ''}
-                                                    className="flex-1 p-3 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-accent/20"
-                                                />
-                                                <button 
-                                                    disabled={!formData.captureEmail || isSendingEmail}
-                                                    onClick={async () => {
-                                                        setIsSendingEmail(true);
-                                                        setStepAck('');
-                                                        try {
-                                                            const response = await fetch('/api/capture-lead/', {
-                                                                method: 'POST',
-                                                                headers: { 'Content-Type': 'application/json' },
-                                                                body: JSON.stringify({
-                                                                    email: formData.captureEmail,
-                                                                    combination: formData.combination,
-                                                                    interests: formData.interests,
-                                                                    personality: formData.personality,
-                                                                    synthesis: synthesis,
-                                                                    matches: matches.map(m => m.generic_name).join(', ')
-                                                                })
-                                                            });
-                                                            
-                                                            const data = await response.json();
-                                                            if (!response.ok) {
-                                                                throw new Error(data.error || 'Failed to send email');
-                                                            }
-                                                            
-                                                            const sentEmail = formData.captureEmail;
-                                                            setFormData({...formData, captureEmail: ''});
-                                                            setStepAck(`Success! Your results have been securely sent to ${sentEmail}.`);
-                                                            setTimeout(() => setStepAck(''), 6000);
-                                                        } catch (e) {
-                                                            console.error('Failed to capture lead:', e);
-                                                            setStepAck(`Error: ${e.message}`);
-                                                            setTimeout(() => setStepAck(''), 5000);
-                                                        } finally {
-                                                            setIsSendingEmail(false);
-                                                        }
-                                                    }}
-                                                    className="px-6 py-2 bg-slate-900 text-white font-bold rounded-lg hover:bg-slate-800 disabled:opacity-50 transition-colors whitespace-nowrap flex items-center justify-center gap-2 min-w-[120px]"
-                                                >
-                                                    {isSendingEmail ? (
-                                                        <><Loader2 className="animate-spin" size={16} /> Sending...</>
-                                                    ) : (
-                                                        'Send Now'
-                                                    )}
-                                                </button>
-                                            </div>
-                                            {stepAck && (
-                                                <div className={`mt-4 p-3 rounded-xl text-sm font-semibold flex items-center gap-2 ${stepAck.startsWith('Error') ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-green-50 text-green-700 border border-green-100'}`}>
-                                                    {stepAck.startsWith('Error') ? null : <CheckCircle size={16} />}
-                                                    {stepAck}
-                                                </div>
-                                            )}
-                                        </div>
-                                        
-                                        <p className="text-slate-500 text-sm mb-4">Want to explore more paths?</p>
-                                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                                            <button
-                                                onClick={() => { setStep(1); setMatches([]); setSynthesis(''); setFormData({...formData, captureEmail: ''}); }}
-                                                className="px-6 py-3 bg-slate-100 text-slate-600 font-semibold rounded-xl hover:bg-slate-200 transition-colors"
-                                            >
-                                                Start Over
-                                            </button>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    )}
+                            </div>
+                        )}
+                    </div>
+                )}
                 </div>
             </div>
 
@@ -443,36 +564,12 @@ const GuidanceWizard = () => {
     );
 };
 
-// ── Sub-components ──
+// ─── Sub-components ───────────────────────────────────────────────────────────
 
-const StepHeader = ({ icon, iconClass, title, subtitle }) => (
-    <div className="text-center mb-6">
-        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 ${iconClass}`}>
-            {icon}
-        </div>
-        <h1 className="page-heading text-2xl font-bold">{title}</h1>
-        <p className="text-slate-500 mt-1">{subtitle}</p>
-    </div>
-);
-
-const StepAck = ({ message }) => (
-    <div className="flex items-center gap-2 text-warm font-semibold text-sm animate-fade-in mb-2">
-        <CheckCircle size={16} />
-        {message}
-    </div>
-);
-
-const PersonalitySelect = ({ label, value, onChange, placeholder, options }) => (
-    <div>
-        <label className="block text-sm font-semibold text-slate-700 mb-2">{label}</label>
-        <select
-            className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 outline-none text-slate-700"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-        >
-            <option value="">{placeholder}</option>
-            {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
+const QuizHeader = ({ title, sub }) => (
+    <div className="mb-8">
+        <h1 className="page-heading text-2xl md:text-3xl font-bold text-slate-900 mb-2">{title}</h1>
+        {sub && <p className="text-slate-500 text-sm">{sub}</p>}
     </div>
 );
 

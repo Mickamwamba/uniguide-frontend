@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { GraduationCap, Clock, School, Award, ArrowRight, Building2, ChevronDown, ChevronUp } from 'lucide-react';
 
-const CourseCard = ({ programme }) => {
+const CourseCard = ({ programme, academicProfile }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
     // If it's a grouped cluster from Agentic Search
@@ -30,24 +30,38 @@ const CourseCard = ({ programme }) => {
                             <Link 
                                 key={offer.id} 
                                 to={`/programmes/${offer.id}`}
-                                className="group flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/50 transition-all"
+                                className="group flex flex-col p-4 rounded-xl bg-slate-50 border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/50 transition-all"
                             >
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-slate-200 shadow-sm text-indigo-600">
-                                        <Building2 size={14} />
-                                    </div>
-                                    <span className="font-medium text-slate-700 group-hover:text-indigo-700 transition-colors">
-                                        {offer.university?.name || offer.university_name || 'Unknown University'}
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    {offer.duration && (
-                                        <span className="text-xs text-slate-500 hidden sm:block">
-                                            {offer.duration} Months
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-slate-200 shadow-sm text-indigo-600 shrink-0">
+                                            <Building2 size={14} />
+                                        </div>
+                                        <span className="font-medium text-slate-700 group-hover:text-indigo-700 transition-colors">
+                                            {(offer.university?.short_name || offer.university_short_name) ? 
+                                                `${offer.university?.name || offer.university_name || 'Unknown University'} (${(offer.university?.short_name || offer.university_short_name)})`
+                                                : (offer.university?.name || offer.university_name || 'Unknown University')
+                                            }
                                         </span>
-                                    )}
-                                    <ArrowRight size={16} className="text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all" />
+                                    </div>
+                                    <div className="flex items-center gap-3 shrink-0">
+                                        {Number(offer.duration) > 0 && (
+                                            <span className="text-xs text-slate-500 hidden sm:block">
+                                                {offer.duration} Years
+                                            </span>
+                                        )}
+                                        <ArrowRight size={16} className="text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all" />
+                                    </div>
                                 </div>
+                                {offer.requirements && offer.requirements.some(r => r.pathway === 'ACSEE' && r.description) && !academicProfile && (
+                                    <div className="mt-3 pt-3 border-t border-slate-200 border-dashed text-xs text-slate-600 flex gap-2 items-start">
+                                        <GraduationCap size={14} className="shrink-0 mt-0.5 text-amber-600" />
+                                        <div className="line-clamp-2 group-hover:line-clamp-none transition-all duration-300">
+                                            <strong className="text-slate-700 font-semibold uppercase tracking-wider text-[10px] block mb-0.5">ACSEE Admission Entry Profile</strong>
+                                            {offer.requirements.find(r => r.pathway === 'ACSEE').description}
+                                        </div>
+                                    </div>
+                                )}
                             </Link>
                         ))}
                         
@@ -80,7 +94,12 @@ const CourseCard = ({ programme }) => {
                 <div>
                     <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
                         <School size={14} />
-                        <span>{programme.university?.name || programme.university_name}</span>
+                        <span>
+                            {(programme.university?.short_name || programme.university_short_name) ? 
+                                `${programme.university?.name || programme.university_name || 'Unknown University'} (${(programme.university?.short_name || programme.university_short_name)})`
+                                : (programme.university?.name || programme.university_name || 'Unknown University')
+                            }
+                        </span>
                     </div>
                     <h3 className="text-lg font-bold text-slate-900 leading-tight group-hover:text-accent transition-colors">
                         {programme.name}
@@ -95,7 +114,7 @@ const CourseCard = ({ programme }) => {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-slate-600">
                     <Clock size={16} className="text-indigo-500" />
-                    <span>{programme.duration_months} Months</span>
+                    <span>{programme.duration_months > 0 ? `${programme.duration_months} Months` : '--'}</span>
                 </div>
             </div>
 
@@ -109,6 +128,7 @@ const CourseCard = ({ programme }) => {
                     </span>
                 )}
             </div>
+            
         </Link>
     );
 };
