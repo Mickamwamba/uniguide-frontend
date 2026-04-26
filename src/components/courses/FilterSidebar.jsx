@@ -68,7 +68,9 @@ const FilterSidebar = ({ filters, setFilters, onClear, className = "" }) => {
                 >
                     <option value="">All Universities</option>
                     {universities.map(uni => (
-                        <option key={uni.id} value={uni.id}>{uni.name}</option>
+                        <option key={uni.id} value={uni.id}>
+                            {uni.short_name ? `${uni.name} (${uni.short_name})` : uni.name}
+                        </option>
                     ))}
                 </select>
             </div>

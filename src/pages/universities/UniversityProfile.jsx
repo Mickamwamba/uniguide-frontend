@@ -83,7 +83,7 @@ const UniversityProfile = () => {
                                 </span>
                             </div>
                             <h1 className="text-3xl md:text-4xl font-display font-bold mb-4 leading-tight">
-                                {university.name}
+                                {university.short_name ? `${university.name} (${university.short_name})` : university.name}
                             </h1>
                             <div className="flex flex-col md:flex-row gap-4 md:gap-8 text-slate-300 text-sm">
                                 {university.head_office && (
