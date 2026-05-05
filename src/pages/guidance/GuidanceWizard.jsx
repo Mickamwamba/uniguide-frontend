@@ -167,7 +167,7 @@ const GuidanceWizard = () => {
                     }
                 }
             }
-
+            
             trackTelemetry('guidance_conversion', {
                 pathway: data.pathway,
                 academic_inputs: {
@@ -177,6 +177,7 @@ const GuidanceWizard = () => {
                     diploma_gpa: data.diploma.gpa
                 },
                 psychometric_inputs: psychoLogs,
+                raw_interests: data.interests,
                 ai_synthesis: json.ai_synthesis || '',
                 ai_recommendations: Array.isArray(json.matches) ? json.matches.map(m => {
                     if (m.offered_at && m.offered_at.length > 0) {
