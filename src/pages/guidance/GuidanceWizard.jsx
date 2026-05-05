@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import CourseCard from '../../components/courses/CourseCard';
-import { ArrowRight, ArrowLeft, Loader2, CheckCircle, Sparkles } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Loader2, CheckCircle, Sparkles, Star } from 'lucide-react';
 import { trackTelemetry } from '../../utils/telemetry';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -102,6 +102,9 @@ const GuidanceWizard = () => {
     const [synthesis, setSynthesis] = useState('');
     const [isSendingEmail, setIsSendingEmail] = useState(false);
     const [emailAck, setEmailAck] = useState('');
+    const [rating, setRating] = useState(0);
+    const [feedbackComment, setFeedbackComment] = useState('');
+    const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
     const { t } = useLanguage();
 
     const [formData, setFormData] = useState({
@@ -167,7 +170,7 @@ const GuidanceWizard = () => {
                     }
                 }
             }
-
+            
             trackTelemetry('guidance_conversion', {
                 pathway: data.pathway,
                 academic_inputs: {
@@ -177,6 +180,7 @@ const GuidanceWizard = () => {
                     diploma_gpa: data.diploma.gpa
                 },
                 psychometric_inputs: psychoLogs,
+                raw_interests: data.interests,
                 ai_synthesis: json.ai_synthesis || '',
                 ai_recommendations: Array.isArray(json.matches) ? json.matches.map(m => {
                     if (m.offered_at && m.offered_at.length > 0) {
@@ -485,6 +489,55 @@ const GuidanceWizard = () => {
                                     {matches.map((prog, i) => (
                                         <CourseCard key={prog.id || i} programme={prog} academicProfile={formData} />
                                     ))}
+                                </div>
+
+                                {/* Feedback Widget */}
+                                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm text-center">
+                                    {!feedbackSubmitted ? (
+                                        <>
+                                            <h3 className="text-base font-bold text-slate-800 mb-0.5">How helpful are these course recommendations?</h3>
+                                            <p className="text-sm text-slate-500 mb-3">Help us do better by rating your matches!</p>
+                                            <div className="flex justify-center gap-2 mb-3">
+                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                    <button
+                                                        key={star}
+                                                        onClick={() => setRating(star)}
+                                                        className={`transition-all hover:scale-110 p-1 ${rating >= star ? 'text-amber-400' : 'text-slate-300'}`}
+                                                    >
+                                                        <Star size={28} fill={rating >= star ? 'currentColor' : 'none'} strokeWidth={1.5} />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            {rating > 0 && (
+                                                <div className="animate-fade-in mt-3 text-left max-w-lg mx-auto">
+                                                    <textarea
+                                                        value={feedbackComment}
+                                                        onChange={(e) => setFeedbackComment(e.target.value)}
+                                                        placeholder="Tell us more about your experience... (optional)"
+                                                        className="w-full p-3 border border-slate-200 rounded-xl mb-3 focus:ring-2 focus:ring-accent/20 outline-none text-sm resize-none"
+                                                        rows="2"
+                                                    ></textarea>
+                                                    <button
+                                                        onClick={() => {
+                                                            trackTelemetry('guidance_feedback', { rating, comment: feedbackComment });
+                                                            setFeedbackSubmitted(true);
+                                                        }}
+                                                        className="w-full bg-accent text-white font-bold py-2.5 rounded-xl hover:bg-accent-hover transition-colors shadow-sm text-sm"
+                                                    >
+                                                        Submit Feedback
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <div className="py-4 animate-fade-in flex flex-col items-center">
+                                            <div className="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-2">
+                                                <CheckCircle size={20} />
+                                            </div>
+                                            <h3 className="text-lg font-bold text-slate-800">Thank You!</h3>
+                                            <p className="text-sm text-slate-500">Your feedback helps us improve.</p>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Email capture */}
