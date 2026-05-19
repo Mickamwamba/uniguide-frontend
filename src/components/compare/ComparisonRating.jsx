@@ -7,7 +7,7 @@ export default function ComparisonRating({ programmeAId, programmeBId }) {
     const [rating, setRating] = useState(0);
     const [hovered, setHovered] = useState(0);
     const [comment, setComment] = useState('');
-    const [status, setStatus] = useState('idle'); // idle | loading | success | error
+    const [status, setStatus] = useState('idle');
 
     async function handleSubmit() {
         if (!rating) return;
@@ -39,21 +39,21 @@ export default function ComparisonRating({ programmeAId, programmeBId }) {
 
     if (status === 'success') {
         return (
-            <div className="bg-slate-800 rounded-2xl p-5 text-center">
-                <p className="text-emerald-400 font-semibold">{t('compare.rating.thanks')}</p>
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 text-center">
+                <p className="text-emerald-600 font-semibold text-base">{t('compare.rating.thanks')}</p>
             </div>
         );
     }
 
     return (
-        <div className="bg-slate-800 rounded-2xl p-5 flex flex-col gap-4">
-            <p className="text-sm font-semibold text-slate-300">{t('compare.rating.title')}</p>
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <p className="text-base font-semibold text-slate-800 mb-4">{t('compare.rating.title')}</p>
 
-            <div className="flex gap-2" onMouseLeave={() => setHovered(0)}>
+            <div className="flex gap-2 mb-4" onMouseLeave={() => setHovered(0)}>
                 {[1, 2, 3, 4, 5].map(star => (
                     <button
                         key={star}
-                        className={`text-2xl transition-colors ${(hovered || rating) >= star ? 'text-amber-400' : 'text-slate-600'}`}
+                        className={`text-3xl transition-colors leading-none ${(hovered || rating) >= star ? 'text-amber-400' : 'text-slate-200'}`}
                         onMouseEnter={() => setHovered(star)}
                         onClick={() => setRating(star)}
                         aria-label={`${star} star`}
@@ -64,7 +64,7 @@ export default function ComparisonRating({ programmeAId, programmeBId }) {
             </div>
 
             <textarea
-                className="w-full bg-slate-700 text-slate-100 rounded-xl px-3 py-2 text-sm resize-none placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-xl px-4 py-3 text-sm resize-none placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
                 rows={2}
                 placeholder={t('compare.rating.placeholder')}
                 value={comment}
@@ -74,7 +74,7 @@ export default function ComparisonRating({ programmeAId, programmeBId }) {
             <button
                 onClick={handleSubmit}
                 disabled={!rating || status === 'loading'}
-                className="self-start bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl px-5 py-2 transition-colors"
+                className="mt-4 bg-accent hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl px-6 py-2.5 transition-colors"
             >
                 {t('compare.rating.submit')}
             </button>

@@ -35,6 +35,7 @@ const Navbar = () => {
                     <Link to="/universities" className="hover:text-accent transition-colors">{t('nav.universities')}</Link>
                     <Link to="/courses" className="hover:text-accent transition-colors">{t('nav.courses')}</Link>
                     <Link to="/guidance" className="hover:text-accent transition-colors">{t('nav.findMyCourse')}</Link>
+                    <Link to="/compare" className="hover:text-accent transition-colors">{t('nav.compare')}</Link>
                 </div>
 
                 {/* Desktop actions */}
@@ -127,6 +128,7 @@ const Navbar = () => {
                         <MobileNavLink to="/universities" onClick={() => setMobileOpen(false)}>{t('nav.universities')}</MobileNavLink>
                         <MobileNavLink to="/courses" onClick={() => setMobileOpen(false)}>{t('nav.courses')}</MobileNavLink>
                         <MobileNavLink to="/guidance" onClick={() => setMobileOpen(false)}>{t('nav.findMyCourse')}</MobileNavLink>
+                        <MobileNavLink to="/compare" onClick={() => setMobileOpen(false)}>{t('nav.compare')}</MobileNavLink>
                     </div>
                 </div>
             )}

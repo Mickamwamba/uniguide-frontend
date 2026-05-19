@@ -4,6 +4,7 @@ const translations = {
         'nav.universities': 'Universities',
         'nav.courses': 'Courses',
         'nav.findMyCourse': 'Find My Course',
+        'nav.compare': 'Compare',
         'nav.search': 'Search',
         'nav.searchPlaceholder': 'Search courses...',
         'nav.searchGo': 'Go',
@@ -277,6 +278,7 @@ const translations = {
     sw: {
         // Navbar
         'nav.universities': 'Vyuo Vikuu',
+        'nav.compare': 'Linganisha',
         'nav.courses': 'Kozi',
         'nav.findMyCourse': 'Tafuta Kozi Yangu',
         'nav.search': 'Tafuta',
