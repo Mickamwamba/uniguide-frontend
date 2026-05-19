@@ -20,12 +20,17 @@ export default function ProgrammeComparison() {
     const [copied, setCopied] = useState(false);
     const timerRef = useRef(null);
 
-    // Auto-trigger comparison if ?a= and ?b= are in URL
+    // On mount: auto-compare if both ?a= and ?b= present; pre-fill A if only ?a= present
     useEffect(() => {
         const aId = searchParams.get('a');
         const bId = searchParams.get('b');
         if (aId && bId && !comparison && !isLoading) {
             triggerCompareById(aId, bId);
+        } else if (aId && !bId) {
+            fetch(`/api/programmes/${aId}/`)
+                .then(r => r.ok ? r.json() : null)
+                .then(data => { if (data) setProgrammeA(data); })
+                .catch(() => {});
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

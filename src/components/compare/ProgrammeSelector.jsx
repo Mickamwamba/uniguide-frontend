@@ -18,6 +18,14 @@ export default function ProgrammeSelector({ value, onChange, otherProgrammeId, l
             .catch(() => {});
     }, []);
 
+    // When value is pre-populated from outside, sync the university dropdown and query
+    useEffect(() => {
+        if (value && !selectedUniversity) {
+            if (value.university) setSelectedUniversity(String(value.university));
+            if (value.name) setQuery(value.name);
+        }
+    }, [value]);
+
     useEffect(() => {
         if (!selectedUniversity || query.trim().length < 1) {
             setSuggestions([]);
