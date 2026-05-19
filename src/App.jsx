@@ -6,6 +6,7 @@ import UniversityProfile from './pages/universities/UniversityProfile';
 import ProgrammeProfile from './pages/programmes/ProgrammeProfile';
 import GuidanceWizard from './pages/guidance/GuidanceWizard';
 import Contact from './pages/Contact';
+import ProgrammeComparison from './pages/compare/ProgrammeComparison';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/courses" element={<CourseBrowser />} />
         <Route path="/guidance" element={<GuidanceWizard />} />
         {/* <Route path="/advisor" element={<ChatAdvisor />} /> */}
+        <Route path="/compare" element={<ProgrammeComparison />} />
         <Route path="/universities" element={<UniversityBrowser />} />
         <Route path="/universities/:id" element={<UniversityProfile />} />
         <Route path="/programmes/:id" element={<ProgrammeProfile />} />
