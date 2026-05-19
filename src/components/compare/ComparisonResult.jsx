@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { Lightbulb, AlertTriangle } from 'lucide-react';
 import DimensionCard from './DimensionCard';
@@ -20,9 +21,31 @@ function DataQualityNotice({ name, quality, t }) {
 export default function ComparisonResult({ result }) {
     const { t } = useLanguage();
     const { programme_a, programme_b, dimensions = {}, synthesis, recommendation = {}, data_quality = {} } = result;
+    const [activeTab, setActiveTab] = useState(0);
 
     const nameA = programme_a?.name;
     const nameB = programme_b?.name;
+
+    const tabs = [
+        {
+            label: t('compare.section.contents'),
+            similarities: dimensions.contents?.similarities,
+            pointsA: dimensions.contents?.programme_a,
+            pointsB: dimensions.contents?.programme_b,
+        },
+        {
+            label: t('compare.section.structure'),
+            similarities: dimensions.structure?.similarities,
+            pointsA: dimensions.structure?.programme_a,
+            pointsB: dimensions.structure?.programme_b,
+        },
+        {
+            label: t('compare.section.careers'),
+            similarities: dimensions.careers?.similarities,
+            pointsA: dimensions.careers?.programme_a,
+            pointsB: dimensions.careers?.programme_b,
+        },
+    ];
 
     return (
         <div className="flex flex-col gap-6">
@@ -74,35 +97,34 @@ export default function ComparisonResult({ result }) {
                 </div>
             )}
 
-            {/* Dimension cards */}
-            <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Detailed Breakdown</p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <DimensionCard
-                        title={t('compare.section.contents')}
-                        nameA={nameA}
-                        nameB={nameB}
-                        similarities={dimensions.contents?.similarities}
-                        pointsA={dimensions.contents?.programme_a}
-                        pointsB={dimensions.contents?.programme_b}
-                    />
-                    <DimensionCard
-                        title={t('compare.section.structure')}
-                        nameA={nameA}
-                        nameB={nameB}
-                        similarities={dimensions.structure?.similarities}
-                        pointsA={dimensions.structure?.programme_a}
-                        pointsB={dimensions.structure?.programme_b}
-                    />
-                    <DimensionCard
-                        title={t('compare.section.careers')}
-                        nameA={nameA}
-                        nameB={nameB}
-                        similarities={dimensions.careers?.similarities}
-                        pointsA={dimensions.careers?.programme_a}
-                        pointsB={dimensions.careers?.programme_b}
-                    />
+            {/* Dimension tabs */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                {/* Tab bar */}
+                <div className="flex border-b border-slate-200 overflow-x-auto">
+                    {tabs.map((tab, i) => (
+                        <button
+                            key={i}
+                            onClick={() => setActiveTab(i)}
+                            className={`px-6 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${
+                                activeTab === i
+                                    ? 'border-accent text-accent'
+                                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                            }`}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
                 </div>
+
+                {/* Active panel */}
+                <DimensionCard
+                    key={activeTab}
+                    nameA={nameA}
+                    nameB={nameB}
+                    similarities={tabs[activeTab].similarities}
+                    pointsA={tabs[activeTab].pointsA}
+                    pointsB={tabs[activeTab].pointsB}
+                />
             </div>
 
             {/* Recommendation — after details so student has context */}
