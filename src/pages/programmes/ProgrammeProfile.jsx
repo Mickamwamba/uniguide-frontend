@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import { BookOpen, Clock, Award, School, ArrowLeft, ArrowRight, Loader2, Briefcase, Flag } from 'lucide-react';
+import { BookOpen, Clock, Award, School, ArrowLeft, ArrowRight, Loader2, Briefcase, Flag, GitCompare } from 'lucide-react';
 import { trackTelemetry } from '../../utils/telemetry';
 import { useLanguage } from '../../context/LanguageContext';
 import ReportModal from '../../components/support/ReportModal';
@@ -117,6 +117,17 @@ const ProgrammeProfile = () => {
                                 </div>
                             </div>
                         )}
+                    </div>
+
+                    {/* Compare CTA */}
+                    <div className="pt-2">
+                        <Link
+                            to={`/compare?a=${programme.id}`}
+                            className="inline-flex items-center gap-2 text-sm font-semibold text-accent hover:text-indigo-800 border border-indigo-200 hover:border-indigo-400 bg-indigo-50 hover:bg-indigo-100 rounded-xl px-4 py-2.5 transition-colors"
+                        >
+                            <GitCompare size={15} />
+                            Compare with another programme
+                        </Link>
                     </div>
                 </div>
             </div>
