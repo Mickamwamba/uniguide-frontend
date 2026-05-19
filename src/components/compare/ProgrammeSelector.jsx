@@ -69,7 +69,7 @@ export default function ProgrammeSelector({ value, onChange, otherProgrammeId, l
                     >
                         <option value="">{t('compare.selector.universityLabel')}</option>
                         {universities.map(u => (
-                            <option key={u.id} value={u.id}>{u.name}</option>
+                            <option key={u.id} value={u.id}>{u.name}{u.short_name ? ` (${u.short_name})` : ''}</option>
                         ))}
                     </select>
                     <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
