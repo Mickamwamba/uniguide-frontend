@@ -83,31 +83,64 @@ function FactRow({ label, valA, valB }) {
 function FactsTable({ nameA, nameB, children }) {
     return (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            {/* Scroll wrapper for mobile */}
-            <div className="overflow-x-auto">
-                <div style={{ minWidth: '420px' }}>
-                    {/* Header */}
-                    <div className="grid border-b border-slate-100" style={{ gridTemplateColumns: '110px 1fr 1fr' }}>
-                        <div className="px-3 py-2.5 bg-slate-50 border-r border-slate-100" />
-                        <div className="px-4 py-2.5 border-r border-slate-100">
-                            <div className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
-                                <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider truncate">{nameA}</span>
+            <div className="relative">
+                <div className="overflow-x-auto">
+                    <div style={{ minWidth: '420px' }}>
+                        <div className="grid border-b border-slate-100" style={{ gridTemplateColumns: '110px 1fr 1fr' }}>
+                            <div className="px-3 py-2.5 bg-slate-50 border-r border-slate-100" />
+                            <div className="px-4 py-2.5 border-r border-slate-100">
+                                <div className="flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
+                                    <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider truncate">{nameA}</span>
+                                </div>
+                            </div>
+                            <div className="px-4 py-2.5">
+                                <div className="flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                                    <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider truncate">{nameB}</span>
+                                </div>
                             </div>
                         </div>
-                        <div className="px-4 py-2.5">
-                            <div className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                                <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider truncate">{nameB}</span>
-                            </div>
-                        </div>
+                        {children}
                     </div>
-                    {children}
                 </div>
+                {/* Scroll hint gradient — mobile only */}
+                <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent sm:hidden" />
             </div>
-            <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 text-xs font-mono text-slate-400">
-                Red dot = values differ between the two programmes
+            <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 text-xs font-mono text-slate-400 flex items-center justify-between">
+                <span>Red dot = values differ between the two programmes</span>
+                <span className="sm:hidden text-slate-300">← swipe</span>
             </div>
+        </div>
+    );
+}
+
+/* ─── Shared mobile A/B tab bar ─── */
+function MobileTabBar({ nameA, nameB, activeTab, setActiveTab }) {
+    return (
+        <div className="flex sm:hidden border-b border-slate-100">
+            <button
+                onClick={() => setActiveTab('a')}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-semibold transition-colors border-b-2 ${
+                    activeTab === 'a'
+                        ? 'text-indigo-600 border-indigo-500 bg-indigo-50/40'
+                        : 'text-slate-400 border-transparent'
+                }`}
+            >
+                <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
+                <span className="truncate max-w-[120px]">{nameA}</span>
+            </button>
+            <button
+                onClick={() => setActiveTab('b')}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-semibold transition-colors border-b-2 ${
+                    activeTab === 'b'
+                        ? 'text-emerald-600 border-emerald-500 bg-emerald-50/40'
+                        : 'text-slate-400 border-transparent'
+                }`}
+            >
+                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                <span className="truncate max-w-[120px]">{nameB}</span>
+            </button>
         </div>
     );
 }
@@ -115,34 +148,35 @@ function FactsTable({ nameA, nameB, children }) {
 /* ─── Bullet list table (independent columns, no implied row pairing) ─── */
 function BulletTable({ nameA, nameB, pointsA = [], pointsB = [], similarities = [] }) {
     const [open, setOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState('a');
     if (!pointsA.length && !pointsB.length && !similarities.length) return null;
+
+    const bulletList = (points, dot) => points.length === 0
+        ? <p className="text-sm text-slate-300 italic">No specific data available.</p>
+        : points.map((item, i) => (
+            <div key={i} className="flex gap-2.5 text-sm text-slate-700 leading-relaxed">
+                <span className={`shrink-0 mt-[7px] w-1.5 h-1.5 rounded-full ${dot}`} />
+                <span>{renderInlineMarkdown(item)}</span>
+            </div>
+        ));
 
     return (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <ColHeader nameA={nameA} nameB={nameB} />
+            {/* Desktop header */}
+            <div className="hidden sm:block"><ColHeader nameA={nameA} nameB={nameB} /></div>
 
-            {/* Two independent lists — no row pairing, stacked on mobile */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
-                <div className="p-4 flex flex-col gap-3">
-                    {pointsA.length === 0
-                        ? <p className="text-sm text-slate-300 italic">No specific data available.</p>
-                        : pointsA.map((item, i) => (
-                            <div key={i} className="flex gap-2.5 text-sm text-slate-700 leading-relaxed">
-                                <span className="shrink-0 mt-[7px] w-1.5 h-1.5 rounded-full bg-indigo-300" />
-                                <span>{renderInlineMarkdown(item)}</span>
-                            </div>
-                        ))}
-                </div>
-                <div className="p-4 flex flex-col gap-3">
-                    {pointsB.length === 0
-                        ? <p className="text-sm text-slate-300 italic">No specific data available.</p>
-                        : pointsB.map((item, i) => (
-                            <div key={i} className="flex gap-2.5 text-sm text-slate-700 leading-relaxed">
-                                <span className="shrink-0 mt-[7px] w-1.5 h-1.5 rounded-full bg-emerald-300" />
-                                <span>{renderInlineMarkdown(item)}</span>
-                            </div>
-                        ))}
-                </div>
+            {/* Mobile: tab switcher */}
+            <MobileTabBar nameA={nameA} nameB={nameB} activeTab={activeTab} setActiveTab={setActiveTab} />
+
+            {/* Mobile: single active column */}
+            <div className="sm:hidden p-4 flex flex-col gap-3">
+                {activeTab === 'a' ? bulletList(pointsA, 'bg-indigo-300') : bulletList(pointsB, 'bg-emerald-300')}
+            </div>
+
+            {/* Desktop: side by side */}
+            <div className="hidden sm:grid grid-cols-2 divide-x divide-slate-100">
+                <div className="p-4 flex flex-col gap-3">{bulletList(pointsA, 'bg-indigo-300')}</div>
+                <div className="p-4 flex flex-col gap-3">{bulletList(pointsB, 'bg-emerald-300')}</div>
             </div>
 
             {similarities.length > 0 && (
@@ -186,85 +220,98 @@ function CareersSection({ nameA, nameB, careersData }) {
     const hasContent = employers_a.length || employers_b.length || pathways_a.length || pathways_b.length;
     if (!hasContent && !notesA.length && !notesB.length) return null;
 
+    const [activeTab, setActiveTab] = useState('a');
+
+    const colA = (
+        <div className="px-4 py-5 flex flex-col gap-5">
+            {employers_a.length > 0 && (
+                <div>
+                    <p className="text-xs font-mono uppercase tracking-wider text-slate-400 mb-2.5">Typical employers</p>
+                    <div className="flex flex-wrap gap-1.5">
+                        {employers_a.map((e, i) => (
+                            <span key={i} className="text-xs font-mono bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full px-2.5 py-1">{e}</span>
+                        ))}
+                    </div>
+                </div>
+            )}
+            {pathways_a.length > 0 && (
+                <div>
+                    <p className="text-xs font-mono uppercase tracking-wider text-slate-400 mb-2.5">Career pathways</p>
+                    <ul className="flex flex-col gap-2">
+                        {pathways_a.map((p, i) => (
+                            <li key={i} className="flex items-center gap-2.5 text-sm text-slate-700">
+                                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />{p}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+            {notesA.length > 0 && (
+                <div className="flex flex-col gap-2">
+                    {notesA.map((item, i) => (
+                        <div key={i} className="flex gap-2.5 text-sm text-slate-500 leading-relaxed">
+                            <span className="shrink-0 mt-[7px] w-1.5 h-1.5 rounded-full bg-indigo-200" />
+                            <span>{renderInlineMarkdown(item)}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+
+    const colB = (
+        <div className="px-4 py-5 flex flex-col gap-5">
+            {employers_b.length > 0 && (
+                <div>
+                    <p className="text-xs font-mono uppercase tracking-wider text-slate-400 mb-2.5">Typical employers</p>
+                    <div className="flex flex-wrap gap-1.5">
+                        {employers_b.map((e, i) => (
+                            <span key={i} className="text-xs font-mono bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full px-2.5 py-1">{e}</span>
+                        ))}
+                    </div>
+                </div>
+            )}
+            {pathways_b.length > 0 && (
+                <div>
+                    <p className="text-xs font-mono uppercase tracking-wider text-slate-400 mb-2.5">Career pathways</p>
+                    <ul className="flex flex-col gap-2">
+                        {pathways_b.map((p, i) => (
+                            <li key={i} className="flex items-center gap-2.5 text-sm text-slate-700">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />{p}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+            {notesB.length > 0 && (
+                <div className="flex flex-col gap-2">
+                    {notesB.map((item, i) => (
+                        <div key={i} className="flex gap-2.5 text-sm text-slate-500 leading-relaxed">
+                            <span className="shrink-0 mt-[7px] w-1.5 h-1.5 rounded-full bg-emerald-200" />
+                            <span>{renderInlineMarkdown(item)}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+
     return (
         <div className="flex flex-col gap-3">
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <ColHeader nameA={nameA} nameB={nameB} />
+                {/* Desktop header */}
+                <div className="hidden sm:block"><ColHeader nameA={nameA} nameB={nameB} /></div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
-                    {/* Column A */}
-                    <div className="px-4 py-5 flex flex-col gap-5">
-                        {employers_a.length > 0 && (
-                            <div>
-                                <p className="text-xs font-mono uppercase tracking-wider text-slate-400 mb-2.5">Typical employers</p>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {employers_a.map((e, i) => (
-                                        <span key={i} className="text-xs font-mono bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full px-2.5 py-1">{e}</span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                        {pathways_a.length > 0 && (
-                            <div>
-                                <p className="text-xs font-mono uppercase tracking-wider text-slate-400 mb-2.5">Career pathways</p>
-                                <ul className="flex flex-col gap-2">
-                                    {pathways_a.map((p, i) => (
-                                        <li key={i} className="flex items-center gap-2.5 text-sm text-slate-700">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0" />
-                                            {p}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-                        {notesA.length > 0 && (
-                            <div className="flex flex-col gap-2">
-                                {notesA.map((item, i) => (
-                                    <div key={i} className="flex gap-2.5 text-sm text-slate-500 leading-relaxed">
-                                        <span className="shrink-0 mt-[7px] w-1.5 h-1.5 rounded-full bg-indigo-200" />
-                                        <span>{renderInlineMarkdown(item)}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                {/* Mobile: tab switcher */}
+                <MobileTabBar nameA={nameA} nameB={nameB} activeTab={activeTab} setActiveTab={setActiveTab} />
 
-                    {/* Column B */}
-                    <div className="px-4 py-5 flex flex-col gap-5">
-                        {employers_b.length > 0 && (
-                            <div>
-                                <p className="text-xs font-mono uppercase tracking-wider text-slate-400 mb-2.5">Typical employers</p>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {employers_b.map((e, i) => (
-                                        <span key={i} className="text-xs font-mono bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full px-2.5 py-1">{e}</span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                        {pathways_b.length > 0 && (
-                            <div>
-                                <p className="text-xs font-mono uppercase tracking-wider text-slate-400 mb-2.5">Career pathways</p>
-                                <ul className="flex flex-col gap-2">
-                                    {pathways_b.map((p, i) => (
-                                        <li key={i} className="flex items-center gap-2.5 text-sm text-slate-700">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                                            {p}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-                        {notesB.length > 0 && (
-                            <div className="flex flex-col gap-2">
-                                {notesB.map((item, i) => (
-                                    <div key={i} className="flex gap-2.5 text-sm text-slate-500 leading-relaxed">
-                                        <span className="shrink-0 mt-[7px] w-1.5 h-1.5 rounded-full bg-emerald-200" />
-                                        <span>{renderInlineMarkdown(item)}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                {/* Mobile: single active column */}
+                <div className="sm:hidden">{activeTab === 'a' ? colA : colB}</div>
+
+                {/* Desktop: side by side */}
+                <div className="hidden sm:grid grid-cols-2 divide-x divide-slate-100">
+                    {colA}
+                    {colB}
                 </div>
 
                 {similarities.length > 0 && (
@@ -309,37 +356,44 @@ function EntryReqTable({ nameA, nameB, reqsA = [], reqsB = [] }) {
 
     return (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-                <div style={{ minWidth: '420px' }}>
-                    <div className="grid border-b border-slate-100" style={{ gridTemplateColumns: '100px 1fr 1fr' }}>
-                        <div className="px-3 py-2.5 bg-slate-50 border-r border-slate-100" />
-                        <div className="px-4 py-2.5 border-r border-slate-100">
-                            <div className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
-                                <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider truncate">{nameA}</span>
+            <div className="relative">
+                <div className="overflow-x-auto">
+                    <div style={{ minWidth: '420px' }}>
+                        <div className="grid border-b border-slate-100" style={{ gridTemplateColumns: '100px 1fr 1fr' }}>
+                            <div className="px-3 py-2.5 bg-slate-50 border-r border-slate-100" />
+                            <div className="px-4 py-2.5 border-r border-slate-100">
+                                <div className="flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
+                                    <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider truncate">{nameA}</span>
+                                </div>
+                            </div>
+                            <div className="px-4 py-2.5">
+                                <div className="flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                                    <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider truncate">{nameB}</span>
+                                </div>
                             </div>
                         </div>
-                        <div className="px-4 py-2.5">
-                            <div className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                                <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider truncate">{nameB}</span>
+                        {rows.map(({ pathway, a, b }) => (
+                            <div key={pathway} className="grid border-t border-slate-100" style={{ gridTemplateColumns: '100px 1fr 1fr' }}>
+                                <div className="px-3 py-4 text-xs font-mono uppercase tracking-wide text-slate-400 bg-slate-50 border-r border-slate-100 self-start">
+                                    {pathway}
+                                </div>
+                                <div className="px-4 py-4 text-sm text-slate-700 leading-relaxed border-r border-slate-100">
+                                    {a?.description || <span className="text-slate-300">—</span>}
+                                </div>
+                                <div className="px-4 py-4 text-sm text-slate-700 leading-relaxed">
+                                    {b?.description || <span className="text-slate-300">—</span>}
+                                </div>
                             </div>
-                        </div>
+                        ))}
                     </div>
-                    {rows.map(({ pathway, a, b }) => (
-                        <div key={pathway} className="grid border-t border-slate-100" style={{ gridTemplateColumns: '100px 1fr 1fr' }}>
-                            <div className="px-3 py-4 text-xs font-mono uppercase tracking-wide text-slate-400 bg-slate-50 border-r border-slate-100 self-start">
-                                {pathway}
-                            </div>
-                            <div className="px-4 py-4 text-sm text-slate-700 leading-relaxed border-r border-slate-100">
-                                {a?.description || <span className="text-slate-300">—</span>}
-                            </div>
-                            <div className="px-4 py-4 text-sm text-slate-700 leading-relaxed">
-                                {b?.description || <span className="text-slate-300">—</span>}
-                            </div>
-                        </div>
-                    ))}
                 </div>
+                {/* Scroll hint gradient — mobile only */}
+                <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent sm:hidden" />
+            </div>
+            <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 text-xs font-mono text-slate-300 sm:hidden text-right">
+                ← swipe to see both
             </div>
         </div>
     );
@@ -349,63 +403,86 @@ function EntryReqTable({ nameA, nameB, reqsA = [], reqsB = [] }) {
 function RecoTable({ nameA, nameB, forA = [], forB = [], progA, progB }) {
     const bulletsA = Array.isArray(forA) ? forA : (forA ? [forA] : []);
     const bulletsB = Array.isArray(forB) ? forB : (forB ? [forB] : []);
+    const [activeTab, setActiveTab] = useState('a');
     if (!bulletsA.length && !bulletsB.length) return null;
+
+    const bulletList = (bullets) => bullets.map((item, i) => (
+        <div key={i} className="flex gap-2.5 text-sm text-slate-700 leading-relaxed">
+            <span className="shrink-0 mt-[7px] w-[5px] h-[5px] rounded-full bg-slate-800" />
+            <span>{renderInlineMarkdown(item)}</span>
+        </div>
+    ));
+
+    const linksA = (
+        <div className="px-4 py-3 flex flex-wrap gap-2">
+            {progA?.id && (
+                <Link to={`/programmes/${progA.id}`} className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-slate-400 rounded-lg px-3 py-1.5 transition-colors bg-white">
+                    View programme <ExternalLink size={10} />
+                </Link>
+            )}
+            {progA?.university_id && (
+                <Link to={`/universities/${progA.university_id}`} className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-slate-400 rounded-lg px-3 py-1.5 transition-colors bg-white">
+                    University <ExternalLink size={10} />
+                </Link>
+            )}
+        </div>
+    );
+
+    const linksB = (
+        <div className="px-4 py-3 flex flex-wrap gap-2">
+            {progB?.id && (
+                <Link to={`/programmes/${progB.id}`} className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-slate-400 rounded-lg px-3 py-1.5 transition-colors bg-white">
+                    View programme <ExternalLink size={10} />
+                </Link>
+            )}
+            {progB?.university_id && (
+                <Link to={`/universities/${progB.university_id}`} className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-slate-400 rounded-lg px-3 py-1.5 transition-colors bg-white">
+                    University <ExternalLink size={10} />
+                </Link>
+            )}
+        </div>
+    );
 
     return (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <ColHeader nameA={nameA} nameB={nameB} />
+            {/* Desktop header */}
+            <div className="hidden sm:block"><ColHeader nameA={nameA} nameB={nameB} /></div>
 
-            {/* Sub-header */}
-            <div className="grid grid-cols-2 border-b border-slate-100 bg-slate-50/50">
-                <div className="px-4 py-2 text-xs font-mono text-indigo-400 border-r border-slate-100">Consider this if…</div>
-                <div className="px-4 py-2 text-xs font-mono text-emerald-400">Consider this if…</div>
+            {/* Mobile: tab switcher */}
+            <MobileTabBar nameA={nameA} nameB={nameB} activeTab={activeTab} setActiveTab={setActiveTab} />
+
+            {/* "Consider this if…" sub-header */}
+            <div className="border-b border-slate-100 bg-slate-50/50">
+                {/* Desktop: two columns */}
+                <div className="hidden sm:grid grid-cols-2">
+                    <div className="px-4 py-2 text-xs font-mono text-indigo-400 border-r border-slate-100">Consider this if…</div>
+                    <div className="px-4 py-2 text-xs font-mono text-emerald-400">Consider this if…</div>
+                </div>
+                {/* Mobile: single label coloured to active tab */}
+                <div className={`sm:hidden px-4 py-2 text-xs font-mono ${activeTab === 'a' ? 'text-indigo-400' : 'text-emerald-400'}`}>
+                    Consider this if…
+                </div>
             </div>
 
-            {/* Two independent bullet lists — stacked on mobile */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
-                <div className="p-4 flex flex-col gap-3">
-                    {bulletsA.map((item, i) => (
-                        <div key={i} className="flex gap-2.5 text-sm text-slate-700 leading-relaxed">
-                            <span className="shrink-0 mt-[7px] w-[5px] h-[5px] rounded-full bg-slate-800" />
-                            <span>{renderInlineMarkdown(item)}</span>
-                        </div>
-                    ))}
-                </div>
-                <div className="p-4 flex flex-col gap-3">
-                    {bulletsB.map((item, i) => (
-                        <div key={i} className="flex gap-2.5 text-sm text-slate-700 leading-relaxed">
-                            <span className="shrink-0 mt-[7px] w-[5px] h-[5px] rounded-full bg-slate-800" />
-                            <span>{renderInlineMarkdown(item)}</span>
-                        </div>
-                    ))}
-                </div>
+            {/* Mobile: single active column */}
+            <div className="sm:hidden p-4 flex flex-col gap-3">
+                {activeTab === 'a' ? bulletList(bulletsA) : bulletList(bulletsB)}
+            </div>
+
+            {/* Desktop: side by side */}
+            <div className="hidden sm:grid grid-cols-2 divide-x divide-slate-100">
+                <div className="p-4 flex flex-col gap-3">{bulletList(bulletsA)}</div>
+                <div className="p-4 flex flex-col gap-3">{bulletList(bulletsB)}</div>
             </div>
 
             {/* Links row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 border-t border-slate-200 bg-slate-50">
-                <div className="px-4 py-3 flex flex-wrap gap-2">
-                    {progA?.id && (
-                        <Link to={`/programmes/${progA.id}`} className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-slate-400 rounded-lg px-3 py-1.5 transition-colors bg-white">
-                            View programme <ExternalLink size={10} />
-                        </Link>
-                    )}
-                    {progA?.university_id && (
-                        <Link to={`/universities/${progA.university_id}`} className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-slate-400 rounded-lg px-3 py-1.5 transition-colors bg-white">
-                            University <ExternalLink size={10} />
-                        </Link>
-                    )}
-                </div>
-                <div className="px-4 py-3 flex flex-wrap gap-2">
-                    {progB?.id && (
-                        <Link to={`/programmes/${progB.id}`} className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-slate-400 rounded-lg px-3 py-1.5 transition-colors bg-white">
-                            View programme <ExternalLink size={10} />
-                        </Link>
-                    )}
-                    {progB?.university_id && (
-                        <Link to={`/universities/${progB.university_id}`} className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-slate-400 rounded-lg px-3 py-1.5 transition-colors bg-white">
-                            University <ExternalLink size={10} />
-                        </Link>
-                    )}
+            <div className="border-t border-slate-200 bg-slate-50">
+                {/* Mobile: only active tab's links */}
+                <div className="sm:hidden">{activeTab === 'a' ? linksA : linksB}</div>
+                {/* Desktop: both */}
+                <div className="hidden sm:grid grid-cols-2 divide-x divide-slate-100">
+                    {linksA}
+                    {linksB}
                 </div>
             </div>
         </div>
