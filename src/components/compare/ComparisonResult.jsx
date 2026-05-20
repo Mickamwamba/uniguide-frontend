@@ -59,62 +59,6 @@ function ColHeader({ nameA, nameB }) {
     );
 }
 
-/* ─── Quick-facts table (genuine label | A | B data) ─── */
-function FactRow({ label, valA, valB }) {
-    const differs = valA && valB && String(valA) !== String(valB);
-    return (
-        <div className={`grid border-t border-slate-100 ${differs ? 'bg-red-50' : ''}`}
-            style={{ gridTemplateColumns: '110px 1fr 1fr' }}>
-            <div className="px-3 py-3 text-xs font-mono uppercase tracking-wide text-slate-400 bg-slate-50 border-r border-slate-100 self-center">
-                {label}
-            </div>
-            <div className={`px-4 py-3 text-sm border-r border-slate-100 ${differs ? 'text-slate-800 font-medium' : 'text-slate-400'}`}>
-                {differs && <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-400 mr-2 mb-0.5 align-middle" />}
-                {valA || '—'}
-            </div>
-            <div className={`px-4 py-3 text-sm ${differs ? 'text-slate-800 font-medium' : 'text-slate-400'}`}>
-                {differs && <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-400 mr-2 mb-0.5 align-middle" />}
-                {valB || '—'}
-            </div>
-        </div>
-    );
-}
-
-function FactsTable({ nameA, nameB, children }) {
-    return (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="relative">
-                <div className="overflow-x-auto">
-                    <div style={{ minWidth: '420px' }}>
-                        <div className="grid border-b border-slate-100" style={{ gridTemplateColumns: '110px 1fr 1fr' }}>
-                            <div className="px-3 py-2.5 bg-slate-50 border-r border-slate-100" />
-                            <div className="px-4 py-2.5 border-r border-slate-100">
-                                <div className="flex items-center gap-1.5">
-                                    <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
-                                    <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider truncate">{nameA}</span>
-                                </div>
-                            </div>
-                            <div className="px-4 py-2.5">
-                                <div className="flex items-center gap-1.5">
-                                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                                    <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider truncate">{nameB}</span>
-                                </div>
-                            </div>
-                        </div>
-                        {children}
-                    </div>
-                </div>
-                {/* Scroll hint gradient — mobile only */}
-                <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent sm:hidden" />
-            </div>
-            <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 text-xs font-mono text-slate-400 flex items-center justify-between">
-                <span>Red dot = values differ between the two programmes</span>
-                <span className="sm:hidden text-slate-300">← swipe</span>
-            </div>
-        </div>
-    );
-}
-
 /* ─── Shared mobile A/B tab bar ─── */
 function MobileTabBar({ nameA, nameB, activeTab, setActiveTab }) {
     return (
@@ -217,23 +161,13 @@ function CareersSection({ nameA, nameB, careersData }) {
     } = careersData || {};
     const [open, setOpen] = useState(false);
 
-    const hasContent = employers_a.length || employers_b.length || pathways_a.length || pathways_b.length;
-    if (!hasContent && !notesA.length && !notesB.length) return null;
+    const hasContent = pathways_a.length || pathways_b.length || notesA.length || notesB.length;
+    if (!hasContent) return null;
 
     const [activeTab, setActiveTab] = useState('a');
 
     const colA = (
         <div className="px-4 py-5 flex flex-col gap-5">
-            {employers_a.length > 0 && (
-                <div>
-                    <p className="text-xs font-mono uppercase tracking-wider text-slate-400 mb-2.5">Typical employers</p>
-                    <div className="flex flex-wrap gap-1.5">
-                        {employers_a.map((e, i) => (
-                            <span key={i} className="text-xs font-mono bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full px-2.5 py-1">{e}</span>
-                        ))}
-                    </div>
-                </div>
-            )}
             {pathways_a.length > 0 && (
                 <div>
                     <p className="text-xs font-mono uppercase tracking-wider text-slate-400 mb-2.5">Career pathways</p>
@@ -261,16 +195,6 @@ function CareersSection({ nameA, nameB, careersData }) {
 
     const colB = (
         <div className="px-4 py-5 flex flex-col gap-5">
-            {employers_b.length > 0 && (
-                <div>
-                    <p className="text-xs font-mono uppercase tracking-wider text-slate-400 mb-2.5">Typical employers</p>
-                    <div className="flex flex-wrap gap-1.5">
-                        {employers_b.map((e, i) => (
-                            <span key={i} className="text-xs font-mono bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full px-2.5 py-1">{e}</span>
-                        ))}
-                    </div>
-                </div>
-            )}
             {pathways_b.length > 0 && (
                 <div>
                     <p className="text-xs font-mono uppercase tracking-wider text-slate-400 mb-2.5">Career pathways</p>
@@ -613,53 +537,45 @@ export default function ComparisonResult({ result, onReset }) {
                 </div>
             </div>
 
-            {/* ── AI Overview (fix 3: no redundant "at a glance" section title) ── */}
+            {/* ── AI Overview — hero card ── */}
             {synthesis && (
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 flex flex-col gap-4">
-                    <div className="flex items-center gap-2">
-                        <Sparkles size={15} className="text-accent shrink-0" />
-                        <p className="text-xs font-mono uppercase tracking-widest text-slate-400">AI Overview</p>
-                    </div>
-                    <p className="text-base text-slate-700 leading-relaxed">{renderInlineMarkdown(synthesis)}</p>
-
-                    {(durA !== durB || programme_a?.award_level !== programme_b?.award_level || programme_a?.study_mode !== programme_b?.study_mode) && (
-                        <div className="flex flex-wrap gap-2">
-                            {durA !== durB && (
-                                <span className="inline-flex items-center gap-1.5 text-xs font-mono border border-red-200 bg-red-50 text-slate-700 rounded-full px-3 py-1.5">
-                                    <span className="text-red-500 font-semibold">Duration</span>
-                                    {durA} → {durB}
-                                </span>
-                            )}
-                            {programme_a?.award_level !== programme_b?.award_level && (
-                                <span className="inline-flex items-center gap-1.5 text-xs font-mono border border-red-200 bg-red-50 text-slate-700 rounded-full px-3 py-1.5">
-                                    <span className="text-red-500 font-semibold">Award</span>
-                                    {programme_a?.award_level} → {programme_b?.award_level}
-                                </span>
-                            )}
-                            {programme_a?.study_mode !== programme_b?.study_mode && programme_a?.study_mode && programme_b?.study_mode && (
-                                <span className="inline-flex items-center gap-1.5 text-xs font-mono border border-red-200 bg-red-50 text-slate-700 rounded-full px-3 py-1.5">
-                                    <span className="text-red-500 font-semibold">Mode</span>
-                                    {programme_a.study_mode} → {programme_b.study_mode}
-                                </span>
-                            )}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="border-l-4 border-accent px-6 py-5 sm:px-8 sm:py-7 flex flex-col gap-4">
+                        <div className="flex items-center gap-2">
+                            <Sparkles size={14} className="text-accent shrink-0" />
+                            <p className="text-xs font-mono uppercase tracking-widest text-slate-400">AI Overview</p>
                         </div>
-                    )}
+                        <p className="text-lg text-slate-800 leading-relaxed font-medium">{renderInlineMarkdown(synthesis)}</p>
+
+                        {(durA !== durB || programme_a?.award_level !== programme_b?.award_level || programme_a?.study_mode !== programme_b?.study_mode) && (
+                            <div className="flex flex-wrap gap-2 pt-1">
+                                {durA !== durB && (
+                                    <span className="inline-flex items-center gap-1.5 text-xs font-mono border border-red-200 bg-red-50 text-slate-700 rounded-full px-3 py-1.5">
+                                        <span className="text-red-500 font-semibold">Duration</span>
+                                        {durA} → {durB}
+                                    </span>
+                                )}
+                                {programme_a?.award_level !== programme_b?.award_level && (
+                                    <span className="inline-flex items-center gap-1.5 text-xs font-mono border border-red-200 bg-red-50 text-slate-700 rounded-full px-3 py-1.5">
+                                        <span className="text-red-500 font-semibold">Award</span>
+                                        {programme_a?.award_level} → {programme_b?.award_level}
+                                    </span>
+                                )}
+                                {programme_a?.study_mode !== programme_b?.study_mode && programme_a?.study_mode && programme_b?.study_mode && (
+                                    <span className="inline-flex items-center gap-1.5 text-xs font-mono border border-red-200 bg-red-50 text-slate-700 rounded-full px-3 py-1.5">
+                                        <span className="text-red-500 font-semibold">Mode</span>
+                                        {programme_a.study_mode} → {programme_b.study_mode}
+                                    </span>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
 
-            {/* ── Quick facts ── */}
-            <Section eyebrow="01 · Quick facts" title="At a glance">
-                <FactsTable nameA={nameA} nameB={nameB}>
-                    <FactRow label="Duration" valA={durA} valB={durB} />
-                    <FactRow label="Award" valA={programme_a?.award_level} valB={programme_b?.award_level} />
-                    <FactRow label="Study mode" valA={programme_a?.study_mode} valB={programme_b?.study_mode} />
-                    <FactRow label="University" valA={programme_a?.university} valB={programme_b?.university} />
-                </FactsTable>
-            </Section>
-
             {/* ── Entry requirements ── */}
             {(programme_a?.admission_requirements?.length > 0 || programme_b?.admission_requirements?.length > 0) && (
-                <Section eyebrow="02 · Can you apply?" title="Entry requirements">
+                <Section eyebrow="01 · Can you apply?" title="Entry requirements">
                     <EntryReqTable
                         nameA={nameA}
                         nameB={nameB}
@@ -669,35 +585,23 @@ export default function ComparisonResult({ result, onReset }) {
                 </Section>
             )}
 
-            {/* ── Course contents ── */}
-            {(dimensions.contents?.programme_a?.length > 0 || dimensions.contents?.programme_b?.length > 0) && (
-                <Section eyebrow="03 · What you'll study" title="Course contents">
+            {/* ── What you'll study (contents + structure merged) ── */}
+            {(dimensions.contents?.programme_a?.length > 0 || dimensions.contents?.programme_b?.length > 0 ||
+              dimensions.structure?.programme_a?.length > 0 || dimensions.structure?.programme_b?.length > 0) && (
+                <Section eyebrow="02 · What you'll study" title="Course & programme breakdown">
                     <BulletTable
                         nameA={nameA}
                         nameB={nameB}
-                        pointsA={dimensions.contents?.programme_a}
-                        pointsB={dimensions.contents?.programme_b}
-                        similarities={dimensions.contents?.similarities}
-                    />
-                </Section>
-            )}
-
-            {/* ── Programme structure ── */}
-            {(dimensions.structure?.programme_a?.length > 0 || dimensions.structure?.programme_b?.length > 0) && (
-                <Section eyebrow="04 · How the degree is built" title="Programme structure">
-                    <BulletTable
-                        nameA={nameA}
-                        nameB={nameB}
-                        pointsA={dimensions.structure?.programme_a}
-                        pointsB={dimensions.structure?.programme_b}
-                        similarities={dimensions.structure?.similarities}
+                        pointsA={[...(dimensions.contents?.programme_a || []), ...(dimensions.structure?.programme_a || [])]}
+                        pointsB={[...(dimensions.contents?.programme_b || []), ...(dimensions.structure?.programme_b || [])]}
+                        similarities={[...(dimensions.contents?.similarities || []), ...(dimensions.structure?.similarities || [])]}
                     />
                 </Section>
             )}
 
             {/* ── Career pathways ── */}
             {dimensions.careers && (
-                <Section eyebrow="05 · Where graduates go" title="Career pathways">
+                <Section eyebrow="03 · Where graduates go" title="Career pathways">
                     <CareersSection
                         nameA={nameA}
                         nameB={nameB}
@@ -708,7 +612,7 @@ export default function ComparisonResult({ result, onReset }) {
 
             {/* ── Which one is for you? ── */}
             {hasRecommendation && (
-                <Section eyebrow="06 · Which one is for you?" title="Your decision guide">
+                <Section eyebrow="04 · Which one is for you?" title="Your decision guide">
                     <RecoTable
                         nameA={nameA}
                         nameB={nameB}
@@ -731,8 +635,8 @@ export default function ComparisonResult({ result, onReset }) {
                 </Section>
             )}
 
-            {/* ── Rating (fix 5: section wrapper gives it equal visual weight) ── */}
-            <Section eyebrow="07 · Your feedback" title="Was this comparison helpful?">
+            {/* ── Rating ── */}
+            <Section eyebrow="05 · Your feedback" title="Was this comparison helpful?">
                 <ComparisonRating
                     programmeAId={programme_a?.id}
                     programmeBId={programme_b?.id}
